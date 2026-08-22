@@ -16,3 +16,22 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-break {
+    break-before: page;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  a[href]::after {
+    content: none;
+  }
+}
