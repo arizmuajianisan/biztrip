@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CATEGORY_LABELS } from '../../../shared/domain/categories'
-import { formatMoney } from '../../../shared/domain/money'
-import type { ReportCategory } from '../../../shared/domain/report'
+import { CATEGORY_LABELS } from '#shared/domain/categories'
+import { formatMoney } from '#shared/domain/money'
+import type { ReportCategory } from '#shared/domain/report'
 
 defineProps<{ row: ReportCategory }>()
 

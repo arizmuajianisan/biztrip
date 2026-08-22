@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CATEGORY_ICONS, CATEGORY_LABELS, PER_DIEM } from '../../../shared/domain/categories'
-import { formatMoney } from '../../../shared/domain/money'
-import type { CategorySummary, TripSummary } from '../../../shared/domain/summary'
+import { CATEGORY_ICONS, CATEGORY_LABELS, PER_DIEM } from '#shared/domain/categories'
+import { formatMoney } from '#shared/domain/money'
+import type { CategorySummary, TripSummary } from '#shared/domain/summary'
 
 const props = defineProps<{ summary: TripSummary }>()
 

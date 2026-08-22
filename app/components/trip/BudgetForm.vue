@@ -4,9 +4,9 @@ import {
   CATEGORY_LABELS,
   PER_DIEM,
   REIMBURSABLE_CATEGORIES
-} from '../../../shared/domain/categories'
-import { formatMoney, roundMoney } from '../../../shared/domain/money'
-import type { BudgetInput } from '../../../shared/domain/summary'
+} from '#shared/domain/categories'
+import { formatMoney, roundMoney } from '#shared/domain/money'
+import type { BudgetInput } from '#shared/domain/summary'
 
 const model = defineModel<BudgetInput[]>({ required: true })
 

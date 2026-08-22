@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { countryName } from '../../../../shared/domain/currencies'
-import { formatMoney } from '../../../../shared/domain/money'
+import { countryName } from '#shared/domain/currencies'
+import { formatMoney } from '#shared/domain/money'
 
 definePageMeta({ layout: 'blank' })
 

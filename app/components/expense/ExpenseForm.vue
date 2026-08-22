@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CATEGORY_ICONS, CATEGORY_LABELS, EXPENSE_CATEGORIES } from '../../../shared/domain/categories'
-import { formatMoney, toHome } from '../../../shared/domain/money'
+import { CATEGORY_ICONS, CATEGORY_LABELS, EXPENSE_CATEGORIES } from '#shared/domain/categories'
+import { formatMoney, toHome } from '#shared/domain/money'
 
 interface ExistingExpense {
   id: string

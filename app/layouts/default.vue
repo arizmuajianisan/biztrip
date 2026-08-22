@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { can } from '../../shared/domain/rbac'
+import { can } from '#shared/domain/rbac'
 
 const { user, clear } = useUserSession()
 

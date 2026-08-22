@@ -1,4 +1,4 @@
-import { can } from '../../shared/domain/rbac'
+import { can } from '#shared/domain/rbac'
 
 export default defineNuxtRouteMiddleware((to) => {
   const { loggedIn, user } = useUserSession()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROLE_LABELS, ROLES, can, type Role } from '../../../shared/domain/rbac'
+import { ROLE_LABELS, ROLES, can, type Role } from '#shared/domain/rbac'
 
 useSeoMeta({ title: 'Users' })
 

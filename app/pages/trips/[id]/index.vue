@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ExpenseCategory } from '../../../../shared/domain/categories'
-import { countryName } from '../../../../shared/domain/currencies'
+import type { ExpenseCategory } from '#shared/domain/categories'
+import { countryName } from '#shared/domain/currencies'
 
 const route = useRoute()
 const tripId = computed(() => route.params.id as string)

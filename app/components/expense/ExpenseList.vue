@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CATEGORY_ICONS, CATEGORY_LABELS, type ExpenseCategory } from '../../../shared/domain/categories'
-import { formatMoney } from '../../../shared/domain/money'
+import { CATEGORY_ICONS, CATEGORY_LABELS, type ExpenseCategory } from '#shared/domain/categories'
+import { formatMoney } from '#shared/domain/money'
 
 interface ExpenseRow {
   id: string

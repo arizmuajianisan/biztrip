@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { EXPENSE_CATEGORIES } from '../../../shared/domain/categories'
-import { COUNTRIES, SELECTABLE_CURRENCIES, currencyForCountry } from '../../../shared/domain/currencies'
-import { formatMoney, toHome } from '../../../shared/domain/money'
-import type { BudgetInput } from '../../../shared/domain/summary'
+import { EXPENSE_CATEGORIES } from '#shared/domain/categories'
+import { COUNTRIES, SELECTABLE_CURRENCIES, currencyForCountry } from '#shared/domain/currencies'
+import { formatMoney, toHome } from '#shared/domain/money'
+import type { BudgetInput } from '#shared/domain/summary'
 
 useSeoMeta({ title: 'New trip' })
 

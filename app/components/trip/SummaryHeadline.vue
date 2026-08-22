@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { formatMoney, roundMoney } from '../../../shared/domain/money'
-import type { TripSummary } from '../../../shared/domain/summary'
+import { formatMoney, roundMoney } from '#shared/domain/money'
+import type { TripSummary } from '#shared/domain/summary'
 
 const props = defineProps<{
   summary: TripSummary

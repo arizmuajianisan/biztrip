@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { countryName } from '../../shared/domain/currencies'
-import { formatMoney } from '../../shared/domain/money'
-import { can } from '../../shared/domain/rbac'
+import { countryName } from '#shared/domain/currencies'
+import { formatMoney } from '#shared/domain/money'
+import { can } from '#shared/domain/rbac'
 
 useSeoMeta({ title: 'Trips' })
 
