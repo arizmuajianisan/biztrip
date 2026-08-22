@@ -2,7 +2,9 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    'nuxt-auth-utils',
+    'nitro-cloudflare-dev'
   ],
 
   devtools: {
@@ -11,11 +13,19 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  routeRules: {
-    '/': { prerender: true }
+  runtimeConfig: {
+    dbUrl: '',
+    seedToken: '',
+    public: {
+      homeCurrency: 'JPY'
+    }
   },
 
   compatibilityDate: '2026-06-30',
+
+  nitro: {
+    preset: 'cloudflare_module'
+  },
 
   eslint: {
     config: {
