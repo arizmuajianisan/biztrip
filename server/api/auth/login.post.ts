@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { schema, useDb } from '../../utils/db'
+import { validate } from '../../utils/validate'
 
 const body = z.object({
   email: z.string().email(),
@@ -8,7 +9,7 @@ const body = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { email, password } = body.parse(await readBody(event))
+  const { email, password } = validate(body, await readBody(event))
   const db = useDb(event)
 
   const [user] = await db.select().from(schema.users)

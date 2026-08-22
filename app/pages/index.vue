@@ -8,7 +8,27 @@ useSeoMeta({ title: 'Trips' })
 const { user } = useUserSession()
 const seesEveryone = computed(() => !!user.value && can(user.value.role, 'any_trips'))
 
-const { data: trips, status } = await useFetch('/api/trips', { default: () => [] })
+// Superadmins can narrow the all-users view to one owner.
+const ownerFilter = ref<string | undefined>(undefined)
+
+const { data: trips, status } = await useFetch('/api/trips', {
+  query: { userId: ownerFilter },
+  default: () => []
+})
+
+const { data: owners, execute: loadOwners } = await useFetch('/api/users', {
+  immediate: false,
+  default: () => [] as { id: string, displayName: string, email: string }[]
+})
+
+onMounted(() => {
+  if (seesEveryone.value) loadOwners()
+})
+
+const ownerItems = computed(() => [
+  { label: 'All users', value: undefined as string | undefined },
+  ...owners.value.map(o => ({ label: `${o.displayName} (${o.email})`, value: o.id as string | undefined }))
+])
 
 function dateRange(start: string, end: string) {
   const fmt = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -27,11 +47,21 @@ function dateRange(start: string, end: string) {
           {{ seesEveryone ? 'Every trip across all users.' : 'Your business trips and their budgets.' }}
         </p>
       </div>
-      <UButton
-        to="/trips/new"
-        label="New trip"
-        icon="i-lucide-plus"
-      />
+      <div class="flex items-center gap-2">
+        <USelectMenu
+          v-if="seesEveryone"
+          v-model="ownerFilter"
+          :items="ownerItems"
+          value-key="value"
+          placeholder="All users"
+          class="w-56"
+        />
+        <UButton
+          to="/trips/new"
+          label="New trip"
+          icon="i-lucide-plus"
+        />
+      </div>
     </div>
 
     <div

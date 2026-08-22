@@ -6,10 +6,11 @@ import { fetchRate } from '../../utils/fx'
 import { requireRole } from '../../utils/guard'
 import { normalizeCurrencies, tripCreateSchema } from '../../utils/trip'
 import { can } from '../../../shared/domain/rbac'
+import { validate } from '../../utils/validate'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireRole(event, 'own_trips')
-  const input = tripCreateSchema.parse(await readBody(event))
+  const input = validate(tripCreateSchema, await readBody(event))
 
   // Only a superadmin may create a trip on somebody else's behalf.
   if (input.userId && input.userId !== actor.id && !can(actor.role, 'any_trips')) {

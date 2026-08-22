@@ -4,12 +4,13 @@ import { can } from '../../../shared/domain/rbac'
 import { computeSummary } from '../../../shared/domain/summary'
 import { schema, useDb } from '../../utils/db'
 import { requireRole } from '../../utils/guard'
+import { validate } from '../../utils/validate'
 
 const query = z.object({ userId: z.string().uuid().optional() })
 
 export default defineEventHandler(async (event) => {
   const actor = await requireRole(event, 'own_trips')
-  const { userId } = query.parse(getQuery(event))
+  const { userId } = validate(query, getQuery(event))
   const db = useDb(event)
 
   const seesEveryone = can(actor.role, 'any_trips')

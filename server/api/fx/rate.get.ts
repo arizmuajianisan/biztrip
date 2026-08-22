@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { fetchRate } from '../../utils/fx'
 import { requireUser } from '../../utils/guard'
+import { validate } from '../../utils/validate'
 
 const query = z.object({
   from: z.string().length(3),
@@ -10,7 +11,7 @@ const query = z.object({
 
 export default defineEventHandler(async (event) => {
   await requireUser(event)
-  const { from, to, date } = query.parse(getQuery(event))
+  const { from, to, date } = validate(query, getQuery(event))
   try {
     return await fetchRate(from.toUpperCase(), to.toUpperCase(), date)
   } catch {

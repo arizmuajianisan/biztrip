@@ -5,11 +5,12 @@ import { schema, useDb } from '../../../utils/db'
 import { fetchRate } from '../../../utils/fx'
 import { requireTrip } from '../../../utils/guard'
 import { normalizeCurrencies, tripUpdateSchema } from '../../../utils/trip'
+import { validate } from '../../../utils/validate'
 
 export default defineEventHandler(async (event) => {
   const tripId = getRouterParam(event, 'id')!
   const trip = await requireTrip(event, tripId)
-  const input = tripUpdateSchema.parse(await readBody(event))
+  const input = validate(tripUpdateSchema, await readBody(event))
   const db = useDb(event)
 
   const patch: Partial<typeof schema.trips.$inferInsert> = {}

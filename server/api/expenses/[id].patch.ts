@@ -3,13 +3,14 @@ import { toHome } from '../../../shared/domain/money'
 import { schema, useDb } from '../../utils/db'
 import { expenseUpdateSchema, resolveRate } from '../../utils/expense'
 import { assertTripOpen, requireExpense } from '../../utils/guard'
+import { validate } from '../../utils/validate'
 
 export default defineEventHandler(async (event) => {
   const expenseId = getRouterParam(event, 'id')!
   const { expense, trip } = await requireExpense(event, expenseId)
   assertTripOpen(trip)
 
-  const input = expenseUpdateSchema.parse(await readBody(event))
+  const input = validate(expenseUpdateSchema, await readBody(event))
 
   const amount = input.amount ?? expense.amount
   const currency = input.currency ?? expense.currency
