@@ -33,13 +33,28 @@ Everything authoritative is in **JPY** (the company is Japanese).
 | Capability | user | admin | superadmin |
 |---|:--:|:--:|:--:|
 | Log in | ✓ | ✓ | ✓ |
-| Full CRUD on own trips / expenses / receipts | ✓ | — | ✓ |
+| Full CRUD on own trips / expenses / receipts | ✓ | ✓ | ✓ |
+| View and edit **any** user's trips | — | ✓ | ✓ |
+| Edit per-category budgets after trip setup | — | ✓ | ✓ |
+| Rename and reassign a trip to another owner | — | ✓ | ✓ |
 | Create, edit, deactivate users; reset passwords | — | ✓ | ✓ |
-| View and edit any user's trips | — | — | ✓ |
+| Create or promote **privileged** accounts | — | — | ✓ |
 
-An `admin` may only create or manage plain `user` accounts. Only a `superadmin`
-can mint or promote privileged accounts. Nobody can deactivate or promote
-themselves. Deactivated users cannot log in; their data is retained.
+`admin` and `superadmin` have identical reach over trip data; they differ only
+in user management, where minting or promoting an `admin`/`superadmin` account
+stays superadmin-only.
+
+A traveller sets the category allowances when creating a trip, but cannot
+change them afterwards — from that point the budget is an allocation from
+above. Nobody can deactivate or promote themselves. Deactivated users cannot
+log in; their data is retained.
+
+Closing a trip freezes its expenses, its budgets and its cash advance, so a
+report already sent to finance cannot change underneath it. A trip can be
+reopened to make a correction.
+
+> The role table in the design spec reflects the original design, where `admin`
+> had no trip access at all. It was widened later; this table is current.
 
 ## Stack
 
