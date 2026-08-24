@@ -37,7 +37,7 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
     <dl class="text-sm space-y-1.5">
       <div class="flex justify-between gap-4">
         <dt>Temporary Payment (cash advance)</dt>
-        <dd class="tabular-nums text-right">
+        <dd class="figure text-right">
           {{ formatMoney(summary.advanceHome, 'JPY') }}
           <span
             v-if="advanceCurrency !== 'JPY'"
@@ -50,7 +50,7 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
 
       <div class="flex justify-between gap-4">
         <dt>Total reimbursable expenses</dt>
-        <dd class="tabular-nums">
+        <dd class="figure">
           − {{ formatMoney(summary.reimbursableActual, 'JPY') }}
         </dd>
       </div>
@@ -58,7 +58,7 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
       <div class="flex justify-between gap-4 border-t border-default pt-1.5 font-medium text-base">
         <dt>{{ owed ? 'Company owes you' : 'Return to company' }}</dt>
         <dd
-          class="tabular-nums"
+          class="figure"
           :class="owed ? 'text-warning' : ''"
         >
           {{ formatMoney(owed ? summary.companyOwesEmployee : summary.returnToCompany, 'JPY') }}
@@ -73,7 +73,7 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
     <div class="bg-elevated/60 rounded-md p-3 space-y-2">
       <div
         v-if="effective"
-        class="flex justify-between gap-4 text-sm"
+        class="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-4 text-sm"
       >
         <div>
           <p class="font-medium">
@@ -85,7 +85,7 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
             <span v-else>· rate entered manually</span>
           </p>
         </div>
-        <p class="tabular-nums font-semibold text-lg whitespace-nowrap">
+        <p class="figure font-semibold text-lg whitespace-nowrap sm:text-right">
           {{ formatMoney(Math.abs(effective.amount), effective.currency) }}
         </p>
       </div>

@@ -3,18 +3,42 @@ import { EXPENSE_CATEGORIES } from '../../../../shared/domain/categories'
 import { toHome } from '../../../../shared/domain/money'
 import { schema, useDb } from '../../../utils/db'
 import { fetchRate } from '../../../utils/fx'
-import { requireTrip } from '../../../utils/guard'
+import { can } from '../../../../shared/domain/rbac'
+import { requireTrip, requireUser } from '../../../utils/guard'
 import { normalizeCurrencies, tripUpdateSchema } from '../../../utils/trip'
 import { validate } from '../../../utils/validate'
 
 export default defineEventHandler(async (event) => {
   const tripId = getRouterParam(event, 'id')!
   const trip = await requireTrip(event, tripId)
+  const actor = await requireUser(event)
   const input = validate(tripUpdateSchema, await readBody(event))
   const db = useDb(event)
 
   const patch: Partial<typeof schema.trips.$inferInsert> = {}
   if (input.name !== undefined) patch.name = input.name
+
+  // Reassigning an owner is a superadmin-only act, and the new owner must be
+  // able to own trips at all — handing a trip to an `admin` would make it
+  // invisible to them, since admins have no trip access.
+  if (input.userId !== undefined && input.userId !== trip.userId) {
+    if (!can(actor.role, 'any_trips')) {
+      throw createError({ statusCode: 403, statusMessage: 'Only a superadmin may reassign a trip' })
+    }
+    const [target] = await db.select({ role: schema.users.role, isActive: schema.users.isActive })
+      .from(schema.users).where(eq(schema.users.id, input.userId)).limit(1)
+    if (!target) {
+      throw createError({ statusCode: 400, statusMessage: 'That user does not exist' })
+    }
+    if (!can(target.role, 'own_trips')) {
+      throw createError({ statusCode: 400, statusMessage: 'That user cannot own trips' })
+    }
+    if (!target.isActive) {
+      throw createError({ statusCode: 400, statusMessage: 'That account is deactivated' })
+    }
+    patch.userId = input.userId
+  }
+
   if (input.destinationCountry !== undefined) patch.destinationCountry = input.destinationCountry
   if (input.defaultCurrency !== undefined) patch.defaultCurrency = input.defaultCurrency
   if (input.settlementCurrency !== undefined) patch.settlementCurrency = input.settlementCurrency

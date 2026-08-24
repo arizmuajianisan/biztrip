@@ -16,26 +16,36 @@ function percent(row: CategorySummary) {
 
 <template>
   <div class="space-y-4">
+    <!--
+      On mobile the label and the figures each take their own line: a name like
+      "Travel Procedure Expense" cannot share a 375px row with two yen amounts
+      without truncating one of them into uselessness.
+    -->
     <div
       v-for="row in reimbursable"
       :key="row.category"
       class="space-y-1.5"
     >
-      <div class="flex items-center gap-2 text-sm">
+      <div class="flex items-start gap-2 text-sm sm:items-center">
         <UIcon
           :name="CATEGORY_ICONS[row.category]"
-          class="size-4 text-muted shrink-0"
+          class="size-4 text-muted shrink-0 mt-0.5 sm:mt-0"
         />
-        <span class="flex-1 min-w-0 truncate">{{ CATEGORY_LABELS[row.category] }}</span>
-        <span class="tabular-nums text-muted text-xs">
-          {{ formatMoney(row.actual, 'JPY') }} / {{ formatMoney(row.allowance, 'JPY') }}
-        </span>
+        <div class="flex-1 min-w-0 sm:flex sm:items-center sm:gap-2">
+          <span class="block sm:flex-1 sm:min-w-0 sm:truncate">
+            {{ CATEGORY_LABELS[row.category] }}
+          </span>
+          <span class="figure text-muted text-xs block sm:inline whitespace-nowrap">
+            {{ formatMoney(row.actual, 'JPY') }} / {{ formatMoney(row.allowance, 'JPY') }}
+          </span>
+        </div>
         <UBadge
           v-if="row.overBy > 0"
           :label="`+${formatMoney(row.overBy, 'JPY')}`"
           color="error"
           variant="subtle"
           size="sm"
+          class="shrink-0 figure"
         />
       </div>
       <UProgress
@@ -48,18 +58,20 @@ function percent(row: CategorySummary) {
     <USeparator />
 
     <div class="space-y-1.5">
-      <div class="flex items-center gap-2 text-sm">
+      <div class="flex items-start gap-2 text-sm">
         <UIcon
           :name="CATEGORY_ICONS[PER_DIEM]"
-          class="size-4 text-primary shrink-0"
+          class="size-4 text-primary shrink-0 mt-0.5"
         />
-        <span class="flex-1 min-w-0">
-          {{ CATEGORY_LABELS[PER_DIEM] }}
+        <div class="flex-1 min-w-0">
+          <div class="sm:flex sm:items-center sm:gap-2">
+            <span class="sm:flex-1">{{ CATEGORY_LABELS[PER_DIEM] }}</span>
+            <span class="figure text-muted text-xs block sm:inline whitespace-nowrap">
+              {{ formatMoney(perDiem.actual, 'JPY') }} / {{ formatMoney(perDiem.allowance, 'JPY') }}
+            </span>
+          </div>
           <span class="text-xs text-muted block">Personal — excluded from the return calculation</span>
-        </span>
-        <span class="tabular-nums text-muted text-xs">
-          {{ formatMoney(perDiem.actual, 'JPY') }} / {{ formatMoney(perDiem.allowance, 'JPY') }}
-        </span>
+        </div>
       </div>
       <UProgress
         :model-value="percent(perDiem)"

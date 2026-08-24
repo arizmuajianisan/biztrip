@@ -17,6 +17,7 @@ export function useTrip(tripId: MaybeRefOrGetter<string>) {
     trip: computed(() => summary.data.value?.trip),
     summary: computed(() => summary.data.value?.summary),
     currencies: computed(() => detail.data.value?.currencies ?? []),
+    owner: computed(() => detail.data.value?.owner ?? null),
     expenses: expenses.data,
     status: summary.status,
     error: summary.error,

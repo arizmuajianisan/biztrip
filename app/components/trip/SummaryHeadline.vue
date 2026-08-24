@@ -42,7 +42,7 @@ function display(yen: number) {
           Budget remaining
         </p>
         <p
-          class="text-3xl font-semibold tabular-nums"
+          class="text-2xl sm:text-3xl font-semibold figure break-all"
           :class="summary.isOverBudget ? 'text-error' : 'text-highlighted'"
         >
           {{ display(summary.budgetRemaining) }}
@@ -55,7 +55,7 @@ function display(yen: number) {
         </p>
         <p
           v-else
-          class="text-sm text-muted tabular-nums"
+          class="text-sm text-muted figure"
         >
           {{ formatMoney(summary.reimbursableActual, 'JPY') }} of
           {{ formatMoney(summary.reimbursableAllowance, 'JPY') }} spent
@@ -75,61 +75,67 @@ function display(yen: number) {
           />
         </div>
         <p
-          class="text-3xl font-semibold tabular-nums"
+          class="text-2xl sm:text-3xl font-semibold figure break-all"
           :class="summary.perDiemRemaining < 0 ? 'text-warning' : 'text-highlighted'"
         >
           {{ display(summary.perDiemRemaining) }}
         </p>
-        <p class="text-sm text-muted tabular-nums">
+        <p class="text-sm text-muted figure">
           {{ formatMoney(summary.perDiemActual, 'JPY') }} of
           {{ formatMoney(summary.perDiemAllowance, 'JPY') }} spent
         </p>
       </UCard>
     </div>
 
-    <div class="flex items-center justify-between gap-4 flex-wrap">
-      <dl class="flex gap-6 text-sm">
-        <div>
-          <dt class="text-muted text-xs">
+    <!--
+      Reconciliation figures. A flex row overflows a 375px screen, so these
+      become stacked rows on mobile with the amount hard-right, which also
+      lets the mono figures form a scannable column.
+    -->
+    <div class="rounded-lg border border-default bg-default/60 divide-y divide-default sm:divide-y-0">
+      <dl class="text-sm divide-y divide-default sm:divide-y-0 sm:flex sm:gap-6 sm:p-4">
+        <div class="flex items-baseline justify-between gap-3 px-4 py-2.5 sm:block sm:p-0">
+          <dt class="text-muted text-xs whitespace-nowrap">
             Cash advance
           </dt>
-          <dd class="tabular-nums">
+          <dd class="figure text-right sm:text-left">
             {{ formatMoney(summary.advanceHome, 'JPY') }}
             <span
               v-if="advanceCurrency !== 'JPY'"
-              class="text-muted"
+              class="text-muted block sm:inline text-xs"
             >
               ({{ formatMoney(advanceAmount, advanceCurrency) }})
             </span>
           </dd>
         </div>
-        <div>
-          <dt class="text-muted text-xs">
+        <div class="flex items-baseline justify-between gap-3 px-4 py-2.5 sm:block sm:p-0">
+          <dt class="text-muted text-xs whitespace-nowrap">
             Reimbursable spent
           </dt>
-          <dd class="tabular-nums">
+          <dd class="figure">
             {{ formatMoney(summary.reimbursableActual, 'JPY') }}
           </dd>
         </div>
-        <div>
-          <dt class="text-muted text-xs">
+        <div class="flex items-baseline justify-between gap-3 px-4 py-2.5 sm:block sm:p-0">
+          <dt class="text-muted text-xs whitespace-nowrap">
             {{ summary.companyOwesEmployee ? 'Company owes you' : 'Return to company' }}
           </dt>
           <dd
-            class="tabular-nums font-medium"
+            class="figure font-medium"
             :class="summary.companyOwesEmployee ? 'text-warning' : ''"
           >
             {{ formatMoney(summary.companyOwesEmployee || summary.returnToCompany, 'JPY') }}
           </dd>
         </div>
-      </dl>
 
-      <USwitch
-        v-if="canShowLocal"
-        v-model="showLocal"
-        :label="`Show in ${displayCurrency}`"
-        size="sm"
-      />
+        <USwitch
+          v-if="canShowLocal"
+          v-model="showLocal"
+          :label="`Show in ${displayCurrency}`"
+          size="sm"
+          class="px-4 py-3 sm:p-0 sm:ms-auto sm:self-center"
+        />
+      </dl>
     </div>
   </div>
 </template>

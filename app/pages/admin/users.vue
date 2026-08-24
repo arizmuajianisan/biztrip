@@ -111,6 +111,26 @@ async function resetPassword() {
   }
 }
 
+function rowActions(row: ManagedUser) {
+  return [[
+    { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row) },
+    {
+      label: 'Reset password',
+      icon: 'i-lucide-key-round',
+      onSelect: () => {
+        passwordFor.value = row
+        newPassword.value = ''
+      }
+    },
+    {
+      label: row.isActive ? 'Deactivate' : 'Activate',
+      icon: row.isActive ? 'i-lucide-user-round-x' : 'i-lucide-user-round-check',
+      disabled: row.id === actor.value?.id,
+      onSelect: () => toggleActive(row)
+    }
+  ]]
+}
+
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
@@ -178,7 +198,20 @@ function formatDate(value: string) {
             </p>
           </div>
 
-          <div class="flex items-center gap-1">
+          <!-- Three text buttons overflow a phone row, so mobile gets one menu. -->
+          <UDropdownMenu
+            :items="rowActions(row)"
+            class="sm:hidden shrink-0"
+          >
+            <UButton
+              icon="i-lucide-ellipsis-vertical"
+              color="neutral"
+              variant="ghost"
+              :aria-label="`Actions for ${row.displayName}`"
+            />
+          </UDropdownMenu>
+
+          <div class="hidden sm:flex sm:items-center sm:gap-1">
             <UButton
               label="Edit"
               color="neutral"

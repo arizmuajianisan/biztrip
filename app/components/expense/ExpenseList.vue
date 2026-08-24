@@ -54,7 +54,7 @@ function formatDate(value: string) {
       <li
         v-for="expense in expenses"
         :key="expense.id"
-        class="py-3 flex items-center gap-3"
+        class="py-3 flex items-center gap-2 sm:gap-3"
       >
         <UIcon
           :name="CATEGORY_ICONS[expense.category]"
@@ -80,32 +80,33 @@ function formatDate(value: string) {
               size="sm"
             />
           </div>
-          <p class="text-xs text-muted">
+          <p class="text-xs text-muted truncate">
             {{ formatDate(expense.spentAt) }}<span v-if="expense.note"> · {{ expense.note }}</span>
           </p>
         </div>
 
         <div class="text-right shrink-0">
-          <p class="text-sm tabular-nums">
+          <p class="text-sm figure whitespace-nowrap">
             {{ formatMoney(expense.amount, expense.currency) }}
           </p>
           <p
             v-if="expense.currency !== 'JPY'"
-            class="text-xs text-muted tabular-nums"
+            class="text-xs text-muted figure whitespace-nowrap"
           >
             {{ formatMoney(expense.amountHome, 'JPY') }}
           </p>
         </div>
 
+        <!-- `sm` rather than `xs`: an xs icon button is ~24px, well under the 44px touch target. -->
         <div
           v-if="!readonly"
-          class="flex gap-1 shrink-0"
+          class="flex gap-0.5 shrink-0"
         >
           <UButton
             icon="i-lucide-pencil"
             color="neutral"
             variant="ghost"
-            size="xs"
+            size="sm"
             aria-label="Edit expense"
             @click="emit('edit', expense)"
           />
@@ -113,7 +114,7 @@ function formatDate(value: string) {
             icon="i-lucide-trash-2"
             color="neutral"
             variant="ghost"
-            size="xs"
+            size="sm"
             aria-label="Delete expense"
             @click="deleting = expense"
           />

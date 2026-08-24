@@ -23,7 +23,7 @@ function print() {
 </script>
 
 <template>
-  <div class="w-full max-w-3xl mx-auto py-8 px-4 self-start">
+  <div class="w-full max-w-3xl mx-auto py-6 sm:py-8 px-4 pb-safe inset-x-safe self-start">
     <div
       v-if="status === 'pending'"
       class="space-y-4"
@@ -36,7 +36,7 @@ function print() {
       v-else-if="data && summary"
       class="space-y-6"
     >
-      <div class="no-print flex items-center justify-between gap-4">
+      <div class="no-print flex items-center justify-between gap-2">
         <UButton
           :to="`/trips/${tripId}`"
           label="Back to trip"
@@ -46,14 +46,16 @@ function print() {
           class="-ms-3"
         />
         <UButton
-          label="Print / Save as PDF"
           icon="i-lucide-printer"
+          label="Print / Save as PDF"
+          aria-label="Print or save as PDF"
+          :ui="{ label: 'hidden sm:inline' }"
           @click="print"
         />
       </div>
 
       <header class="space-y-1">
-        <h1 class="text-2xl font-semibold tracking-tight">
+        <h1 class="text-xl sm:text-2xl font-semibold tracking-tight break-words">
           {{ data.trip.name }}
         </h1>
         <p class="text-sm text-muted">
@@ -79,13 +81,13 @@ function print() {
         <dl class="text-sm space-y-1">
           <div class="flex justify-between">
             <dt>Total allowance</dt>
-            <dd class="tabular-nums">
+            <dd class="figure">
               {{ formatMoney(summary.reimbursableAllowance, 'JPY') }}
             </dd>
           </div>
           <div class="flex justify-between">
             <dt>Total actual</dt>
-            <dd class="tabular-nums">
+            <dd class="figure">
               {{ formatMoney(summary.reimbursableActual, 'JPY') }}
             </dd>
           </div>
@@ -118,19 +120,19 @@ function print() {
         <dl class="text-sm space-y-1">
           <div class="flex justify-between">
             <dt>Allowance</dt>
-            <dd class="tabular-nums">
+            <dd class="figure">
               {{ formatMoney(summary.perDiemAllowance, 'JPY') }}
             </dd>
           </div>
           <div class="flex justify-between">
             <dt>Spent</dt>
-            <dd class="tabular-nums">
+            <dd class="figure">
               {{ formatMoney(summary.perDiemActual, 'JPY') }}
             </dd>
           </div>
           <div class="flex justify-between font-medium">
             <dt>Remaining — kept by the employee</dt>
-            <dd class="tabular-nums">
+            <dd class="figure">
               {{ formatMoney(summary.perDiemRemaining, 'JPY') }}
             </dd>
           </div>

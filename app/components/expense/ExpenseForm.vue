@@ -153,7 +153,7 @@ async function save() {
   <UModal
     v-model:open="open"
     :title="expense ? 'Edit expense' : 'Add expense'"
-    :ui="{ content: 'max-w-lg' }"
+    :ui="{ content: 'max-w-lg', body: 'max-h-[70vh] overflow-y-auto' }"
   >
     <template #body>
       <div class="space-y-4">

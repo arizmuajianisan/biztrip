@@ -43,7 +43,9 @@ export const tripUpdateSchema = z.object({
     currency,
     fxRate: z.number().positive().optional()
   }).optional(),
-  status: z.enum(['active', 'closed']).optional()
+  status: z.enum(['active', 'closed']).optional(),
+  /** Reassign the trip to another owner. Superadmin only — enforced in the handler. */
+  userId: z.string().uuid().optional()
 })
 
 /** JPY + destination + settlement are always available, in a stable order. */

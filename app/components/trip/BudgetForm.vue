@@ -31,7 +31,7 @@ const grandTotal = computed(() => roundMoney(reimbursableTotal.value + perDiemTo
     <div
       v-for="category in REIMBURSABLE_CATEGORIES"
       :key="category"
-      class="flex items-center gap-3"
+      class="flex items-center gap-2 sm:gap-3"
     >
       <UIcon
         :name="CATEGORY_ICONS[category]"
@@ -43,14 +43,14 @@ const grandTotal = computed(() => roundMoney(reimbursableTotal.value + perDiemTo
         :min="0"
         :step="1000"
         :format-options="{ style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }"
-        class="w-44"
+        class="w-32 sm:w-44 shrink-0"
         @update:model-value="setAmount(category, $event)"
       />
     </div>
 
     <USeparator />
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
       <UIcon
         :name="CATEGORY_ICONS[PER_DIEM]"
         class="size-4 text-primary shrink-0"
@@ -68,7 +68,7 @@ const grandTotal = computed(() => roundMoney(reimbursableTotal.value + perDiemTo
         :min="0"
         :step="1000"
         :format-options="{ style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }"
-        class="w-44"
+        class="w-32 sm:w-44 shrink-0"
         @update:model-value="setAmount(PER_DIEM, $event)"
       />
     </div>
@@ -78,19 +78,19 @@ const grandTotal = computed(() => roundMoney(reimbursableTotal.value + perDiemTo
     <dl class="text-sm space-y-1">
       <div class="flex justify-between text-muted">
         <dt>Reimbursable total</dt>
-        <dd class="tabular-nums">
+        <dd class="figure">
           {{ formatMoney(reimbursableTotal, 'JPY') }}
         </dd>
       </div>
       <div class="flex justify-between text-muted">
         <dt>Per Diem</dt>
-        <dd class="tabular-nums">
+        <dd class="figure">
           {{ formatMoney(perDiemTotal, 'JPY') }}
         </dd>
       </div>
       <div class="flex justify-between font-medium">
         <dt>Grand total</dt>
-        <dd class="tabular-nums">
+        <dd class="figure">
           {{ formatMoney(grandTotal, 'JPY') }}
         </dd>
       </div>

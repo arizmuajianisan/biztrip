@@ -38,28 +38,39 @@ function dateRange(start: string, end: string) {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight">
-          Trips
-        </h1>
-        <p class="text-muted text-sm">
-          {{ seesEveryone ? 'Every trip across all users.' : 'Your business trips and their budgets.' }}
-        </p>
+    <div class="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:justify-between sm:gap-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">
+            Trips
+          </h1>
+          <p class="text-muted text-sm">
+            {{ seesEveryone ? 'Every trip across all users.' : 'Your business trips and their budgets.' }}
+          </p>
+        </div>
+        <!-- Icon-only on mobile; the heading already says what this page is. -->
+        <UButton
+          to="/trips/new"
+          icon="i-lucide-plus"
+          aria-label="New trip"
+          class="sm:hidden shrink-0"
+        />
       </div>
-      <div class="flex items-center gap-2">
+
+      <div class="flex items-center gap-2 shrink-0">
         <USelectMenu
           v-if="seesEveryone"
           v-model="ownerFilter"
           :items="ownerItems"
           value-key="value"
           placeholder="All users"
-          class="w-56"
+          class="w-full sm:w-56"
         />
         <UButton
           to="/trips/new"
           label="New trip"
           icon="i-lucide-plus"
+          class="hidden sm:inline-flex"
         />
       </div>
     </div>
@@ -104,9 +115,12 @@ function dateRange(start: string, end: string) {
         :to="`/trips/${trip.id}`"
         class="block"
       >
-        <UCard :ui="{ body: 'sm:flex sm:items-center sm:gap-6' }">
+        <UCard
+          class="transition-colors hover:border-primary/40"
+          :ui="{ body: 'sm:flex sm:items-center sm:gap-6' }"
+        >
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="font-medium truncate">{{ trip.name }}</span>
               <UBadge
                 v-if="trip.status === 'closed'"
@@ -134,20 +148,26 @@ function dateRange(start: string, end: string) {
             </p>
           </div>
 
-          <div class="mt-3 sm:mt-0 sm:text-right shrink-0">
+          <!-- Mobile: label left, figures right, separated by a hairline rule. -->
+          <div
+            class="mt-3 pt-2.5 border-t border-default flex items-baseline justify-between gap-3
+                      sm:mt-0 sm:pt-0 sm:border-0 sm:block sm:text-right sm:shrink-0"
+          >
             <p class="text-xs text-muted uppercase tracking-wide">
               Budget remaining
             </p>
-            <p
-              class="text-lg font-semibold tabular-nums"
-              :class="trip.isOverBudget ? 'text-error' : 'text-highlighted'"
-            >
-              {{ formatMoney(trip.budgetRemaining, 'JPY') }}
-            </p>
-            <p class="text-xs text-muted tabular-nums">
-              {{ formatMoney(trip.reimbursableActual, 'JPY') }} of
-              {{ formatMoney(trip.reimbursableAllowance, 'JPY') }} spent
-            </p>
+            <div>
+              <p
+                class="text-lg font-semibold figure whitespace-nowrap"
+                :class="trip.isOverBudget ? 'text-error' : 'text-highlighted'"
+              >
+                {{ formatMoney(trip.budgetRemaining, 'JPY') }}
+              </p>
+              <p class="text-xs text-muted figure whitespace-nowrap">
+                {{ formatMoney(trip.reimbursableActual, 'JPY') }} of
+                {{ formatMoney(trip.reimbursableAllowance, 'JPY') }}
+              </p>
+            </div>
           </div>
         </UCard>
       </ULink>

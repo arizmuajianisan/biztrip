@@ -28,24 +28,26 @@ const userMenu = computed(() => [[
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <header class="no-print border-b border-default bg-default sticky top-0 z-10">
-      <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-6">
+    <header class="no-print border-b border-default bg-default/85 backdrop-blur-md sticky top-0 z-20">
+      <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-2 sm:gap-6 inset-x-safe">
         <NuxtLink
           to="/"
-          class="font-semibold tracking-tight flex items-center gap-2"
+          class="font-semibold tracking-tight flex items-center gap-2 shrink-0"
         >
           <UIcon
             name="i-lucide-receipt-text"
             class="text-primary size-5"
           />
-          Trip Ledger
+          <!-- The wordmark is the first thing to go when space is tight. -->
+          <span class="hidden sm:inline">Trip Ledger</span>
         </NuxtLink>
 
-        <nav class="flex items-center gap-1 text-sm">
+        <nav class="flex items-center gap-0.5 text-sm min-w-0">
           <UButton
             v-if="canSeeTrips"
             to="/"
             label="Trips"
+            icon="i-lucide-luggage"
             color="neutral"
             variant="ghost"
             size="sm"
@@ -54,13 +56,14 @@ const userMenu = computed(() => [[
             v-if="canManageUsers"
             to="/admin/users"
             label="Users"
+            icon="i-lucide-users"
             color="neutral"
             variant="ghost"
             size="sm"
           />
         </nav>
 
-        <div class="ms-auto flex items-center gap-2">
+        <div class="ms-auto flex items-center gap-1 shrink-0">
           <UColorModeButton />
           <UDropdownMenu :items="userMenu">
             <UButton
@@ -70,13 +73,14 @@ const userMenu = computed(() => [[
               variant="ghost"
               size="sm"
               trailing-icon="i-lucide-chevron-down"
+              :ui="{ label: 'hidden md:inline', trailingIcon: 'hidden md:inline-block' }"
             />
           </UDropdownMenu>
         </div>
       </div>
     </header>
 
-    <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
+    <div class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 sm:py-8 pb-safe inset-x-safe">
       <slot />
     </div>
   </div>

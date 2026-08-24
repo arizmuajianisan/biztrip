@@ -1,7 +1,8 @@
 <script setup lang="ts">
 useHead({
   meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+    // viewport-fit=cover lets env(safe-area-inset-*) resolve on notched iPhones.
+    { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
   ],
   link: [
     { rel: 'icon', href: '/favicon.ico' }

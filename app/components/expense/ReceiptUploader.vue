@@ -160,9 +160,9 @@ defineExpose({ upload })
         <UButton
           icon="i-lucide-x"
           color="error"
-          size="xs"
+          size="sm"
           :disabled="busy"
-          class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity"
           @click="removeSaved(receipt)"
         />
       </div>
@@ -190,8 +190,8 @@ defineExpose({ upload })
         <UButton
           icon="i-lucide-x"
           color="neutral"
-          size="xs"
-          class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          size="sm"
+          class="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity"
           @click="removePending(file)"
         />
       </div>

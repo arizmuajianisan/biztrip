@@ -1,8 +1,17 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/*
+ * Trip Ledger — "printed ledger" aesthetic.
+ *
+ * Instrument Sans for prose and chrome; IBM Plex Mono for every monetary
+ * figure, so columns of money align like receipt tape. Green is kept as the
+ * budget-health semantic (under budget reads green, over reads red) rather
+ * than as decoration.
+ */
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
@@ -17,6 +26,50 @@
   --color-green-950: #052E16;
 }
 
+/*
+ * Every money amount in the app. Monospaced and tabular so figures in a
+ * column line up digit-for-digit, which is the whole point of a ledger.
+ */
+@utility figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  font-feature-settings: "zero" 1;
+}
+
+/* Paper-tinted ground so cards read as sheets laid on a desk, not floating divs. */
+@layer base {
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--ui-bg-elevated), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  /* Never let a stray wide element cause sideways scroll on a phone. */
+  html {
+    overflow-x: hidden;
+  }
+
+  /* iOS: stop Safari zooming the page when a text field is focused. */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1rem);
+    }
+  }
+}
+
+/* Respects the iPhone home-bar / notch when content runs to the screen edge. */
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility inset-x-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 @media print {
   .no-print {
     display: none !important;
@@ -28,10 +81,20 @@
 
   body {
     background: #fff;
+    background-image: none;
     color: #000;
   }
 
   a[href]::after {
     content: none;
+  }
+
+  /* The mobile card layout is screen-only; print always gets the real table. */
+  .print-table {
+    display: table !important;
+  }
+
+  .print-hidden {
+    display: none !important;
   }
 }
