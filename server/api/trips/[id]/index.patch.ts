@@ -15,21 +15,40 @@ export default defineEventHandler(async (event) => {
   const input = validate(tripUpdateSchema, await readBody(event))
   const db = useDb(event)
 
+  // Every permission and state check runs before the first write, so a refused
+  // request can never leave the trip half-updated.
+  if (input.budgets && !can(actor.role, 'manage_budgets')) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Only an admin or superadmin may change budgets'
+    })
+  }
+
+  // Closing a trip fixes the report that went to finance. Budgets and the cash
+  // advance both feed that report, so neither may move once the trip is closed.
+  // Reopening (status back to `active`) is the way to make a correction.
+  const closed = trip.status === 'closed'
+  if (closed && input.budgets) {
+    throw createError({ statusCode: 409, statusMessage: 'Reopen the trip to change its budgets' })
+  }
+  if (closed && input.temporaryPayment) {
+    throw createError({ statusCode: 409, statusMessage: 'Reopen the trip to change the cash advance' })
+  }
+
   const patch: Partial<typeof schema.trips.$inferInsert> = {}
   if (input.name !== undefined) patch.name = input.name
 
-  // Reassigning an owner is a superadmin-only act, and the new owner must be
-  // able to own trips at all — handing a trip to an `admin` would make it
-  // invisible to them, since admins have no trip access.
   if (input.userId !== undefined && input.userId !== trip.userId) {
     if (!can(actor.role, 'any_trips')) {
-      throw createError({ statusCode: 403, statusMessage: 'Only a superadmin may reassign a trip' })
+      throw createError({ statusCode: 403, statusMessage: 'You may not reassign this trip' })
     }
     const [target] = await db.select({ role: schema.users.role, isActive: schema.users.isActive })
       .from(schema.users).where(eq(schema.users.id, input.userId)).limit(1)
     if (!target) {
       throw createError({ statusCode: 400, statusMessage: 'That user does not exist' })
     }
+    // Every role can currently own trips, so this is a guard against a future
+    // matrix change silently orphaning a trip with a new owner who cannot see it.
     if (!can(target.role, 'own_trips')) {
       throw createError({ statusCode: 400, statusMessage: 'That user cannot own trips' })
     }

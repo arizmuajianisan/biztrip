@@ -21,10 +21,12 @@ interface EditableExpense {
 
 const { user } = useUserSession()
 const canReassign = computed(() => !!user.value && can(user.value.role, 'any_trips'))
+const canEditBudgets = computed(() => !!user.value && can(user.value.role, 'manage_budgets'))
 
 const formOpen = ref(false)
 const editing = ref<EditableExpense | undefined>(undefined)
 const editTripOpen = ref(false)
+const budgetOpen = ref(false)
 const closing = ref(false)
 const closeOpen = ref(false)
 
@@ -64,6 +66,13 @@ const secondaryActions = computed(() => [[
     icon: 'i-lucide-pencil',
     onSelect: () => { editTripOpen.value = true }
   },
+  ...(canEditBudgets.value && !readonly.value
+    ? [{
+        label: 'Edit budgets',
+        icon: 'i-lucide-sliders-horizontal',
+        onSelect: () => { budgetOpen.value = true }
+      }]
+    : []),
   ...(readonly.value
     ? []
     : [{
@@ -182,9 +191,23 @@ function dateRange(start: string, end: string) {
 
     <UCard>
       <template #header>
-        <h2 class="font-medium">
-          By category
-        </h2>
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="font-medium">
+            By category
+          </h2>
+          <!-- Sits next to the bars it changes; hidden on mobile, where it
+               lives in the trip overflow menu instead. -->
+          <UButton
+            v-if="canEditBudgets && !readonly"
+            label="Edit budgets"
+            icon="i-lucide-sliders-horizontal"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            class="hidden sm:inline-flex"
+            @click="budgetOpen = true"
+          />
+        </div>
       </template>
       <TripCategoryBars :summary="summary" />
     </UCard>
@@ -246,6 +269,13 @@ function dateRange(start: string, end: string) {
       :start-date="trip.startDate"
       :end-date="trip.endDate"
       :expense="editing"
+      @saved="refresh"
+    />
+
+    <TripBudgetDialog
+      v-model:open="budgetOpen"
+      :trip-id="trip.id"
+      :per-category="summary.perCategory"
       @saved="refresh"
     />
 

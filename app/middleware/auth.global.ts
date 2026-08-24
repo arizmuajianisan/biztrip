@@ -13,12 +13,9 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const role = user.value!.role
 
+  // Admin and superadmin both reach trip data now, so every signed-in role
+  // lands on the trip list; only /admin is gated.
   if (to.path.startsWith('/admin') && !can(role, 'manage_users')) {
     return navigateTo('/')
-  }
-
-  // A plain admin has no trip access at all, so user management is their home.
-  if (to.path === '/' && !can(role, 'own_trips') && can(role, 'manage_users')) {
-    return navigateTo('/admin/users')
   }
 })

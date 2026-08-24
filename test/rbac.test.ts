@@ -8,15 +8,27 @@ describe('can', () => {
     expect(can('user', 'manage_users')).toBe(false)
   })
 
-  it('lets user and superadmin work with their own trips, but not admin', () => {
+  it('lets every role work with their own trips', () => {
     expect(can('user', 'own_trips')).toBe(true)
     expect(can('superadmin', 'own_trips')).toBe(true)
-    expect(can('admin', 'own_trips')).toBe(false)
+    expect(can('admin', 'own_trips')).toBe(true)
   })
 
-  it('lets only superadmin touch any user\'s trips', () => {
+  it('lets admin and superadmin touch any user\'s trips, but not a plain user', () => {
     expect(can('superadmin', 'any_trips')).toBe(true)
-    expect(can('admin', 'any_trips')).toBe(false)
+    expect(can('admin', 'any_trips')).toBe(true)
     expect(can('user', 'any_trips')).toBe(false)
+  })
+
+  it('lets only admin and superadmin edit budgets after setup', () => {
+    expect(can('superadmin', 'manage_budgets')).toBe(true)
+    expect(can('admin', 'manage_budgets')).toBe(true)
+    expect(can('user', 'manage_budgets')).toBe(false)
+  })
+
+  it('gives admin the same trip reach as superadmin', () => {
+    for (const action of ['own_trips', 'any_trips', 'manage_budgets'] as const) {
+      expect(can('admin', action)).toBe(can('superadmin', action))
+    }
   })
 })
