@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "trip-ledger",
+  "main": "./.output/server/index.mjs",
+  "compatibility_date": "2026-06-30",
+  "compatibility_flags": ["nodejs_compat"],
+  // Preview URLs would expose every past deployment publicly; this app holds real
+  // expense data, so only the primary workers.dev route is served.
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./.output/public/",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "RECEIPTS",
+      "bucket_name": "trip-ledger-receipts"
+    }
+  ]
+}
