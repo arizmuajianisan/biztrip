@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { toHome } from '../../../shared/domain/money'
 import { schema, useDb } from '../../utils/db'
-import { expenseUpdateSchema, resolveRate } from '../../utils/expense'
+import { expenseUpdateSchema, nextSortIndex, resolveRate } from '../../utils/expense'
 import { assertTripOpen, requireExpense } from '../../utils/guard'
 import { validate } from '../../utils/validate'
 
@@ -30,7 +30,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDb(event)
+
+  // Changing the date moves the expense into a different day's sequence, where
+  // its old position is meaningless and would collide. Send it to the end.
+  const movedDay = spentAt !== expense.spentAt
+  const sortIndex = movedDay
+    ? await nextSortIndex(db, trip.id, spentAt)
+    : expense.sortIndex
+
   const [updated] = await db.update(schema.expenses).set({
+    sortIndex,
     category: input.category ?? expense.category,
     amount,
     currency,

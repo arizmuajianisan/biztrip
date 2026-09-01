@@ -1,4 +1,4 @@
-import { count, desc, eq } from 'drizzle-orm'
+import { asc, count, desc, eq } from 'drizzle-orm'
 import { schema, useDb } from '../../../utils/db'
 import { requireTrip } from '../../../utils/guard'
 
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const [rows, receiptCounts] = await Promise.all([
     db.select().from(schema.expenses)
       .where(eq(schema.expenses.tripId, tripId))
-      .orderBy(desc(schema.expenses.spentAt), desc(schema.expenses.createdAt)),
+      .orderBy(desc(schema.expenses.spentAt), asc(schema.expenses.sortIndex), asc(schema.expenses.createdAt)),
     db.select({ expenseId: schema.receipts.expenseId, total: count() })
       .from(schema.receipts)
       .innerJoin(schema.expenses, eq(schema.expenses.id, schema.receipts.expenseId))

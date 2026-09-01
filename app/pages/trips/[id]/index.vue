@@ -235,6 +235,7 @@ function dateRange(start: string, end: string) {
         :readonly="readonly"
         @edit="editExpense"
         @deleted="refresh"
+        @reordered="refresh"
       />
     </UCard>
 

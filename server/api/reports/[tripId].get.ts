@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     // likes, and that order changes as rows get updated.
     db.select().from(schema.expenses)
       .where(eq(schema.expenses.tripId, tripId))
-      .orderBy(asc(schema.expenses.spentAt), asc(schema.expenses.createdAt)),
+      .orderBy(asc(schema.expenses.spentAt), asc(schema.expenses.sortIndex), asc(schema.expenses.createdAt)),
     db.select({ expenseId: schema.receipts.expenseId, total: count() })
       .from(schema.receipts)
       .innerJoin(schema.expenses, eq(schema.expenses.id, schema.receipts.expenseId))
@@ -51,7 +51,8 @@ export default defineEventHandler(async (event) => {
       rateSource: e.rateSource,
       note: e.note,
       receiptCount: counts.get(e.id) ?? 0,
-      createdAt: e.createdAt.toISOString()
+      createdAt: e.createdAt.toISOString(),
+      sortIndex: e.sortIndex
     })),
     advanceHome: trip.temporaryPaymentAmountHome,
     additionalAdvanceHome: trip.additionalPaymentAmountHome

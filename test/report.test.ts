@@ -15,6 +15,7 @@ const expense = (over: Partial<ReportExpense & { category: ExpenseCategory }> = 
   note: null,
   receiptCount: 2,
   createdAt: '2026-08-20T00:00:00Z',
+  sortIndex: 1,
   category: 'hotel' as ExpenseCategory,
   ...over
 })
@@ -67,6 +68,25 @@ describe('buildReport', () => {
     })
     const train = r.reimbursable.find(c => c.category === 'train')!
     expect(train.expenses.map(e => e.id)).toEqual(['outbound', 'middle', 'return'])
+  })
+
+  /*
+   * A leg added later (splitting one journey into two) is logged last but
+   * belongs mid-sequence, so an explicit position must beat the log time.
+   */
+  it('honours the manual position ahead of the log time', () => {
+    const r = buildReport({
+      budgets: [],
+      expenses: [
+        expense({ id: 'kikuna-to-hotel', category: 'train', spentAt: '2026-08-28', sortIndex: 7, createdAt: '2026-09-01T04:29:55Z' }),
+        expense({ id: 'shinyoko-to-kikuna', category: 'train', spentAt: '2026-08-28', sortIndex: 6, createdAt: '2026-09-02T10:00:00Z' }),
+        expense({ id: 'hotel-to-denki', category: 'train', spentAt: '2026-08-28', sortIndex: 5, createdAt: '2026-09-01T04:29:10Z' })
+      ],
+      advanceHome: 0
+    })
+    const train = r.reimbursable.find(c => c.category === 'train')!
+    expect(train.expenses.map(e => e.id))
+      .toEqual(['hotel-to-denki', 'shinyoko-to-kikuna', 'kikuna-to-hotel'])
   })
 
   it('does not depend on the order rows arrive in', () => {

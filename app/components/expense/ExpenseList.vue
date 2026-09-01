@@ -14,9 +14,34 @@ interface ExpenseRow {
   receiptCount: number
 }
 
-defineProps<{ expenses: ExpenseRow[], readonly?: boolean }>()
+const props = defineProps<{ expenses: ExpenseRow[], readonly?: boolean }>()
 
-const emit = defineEmits<{ edit: [ExpenseRow], deleted: [] }>()
+const emit = defineEmits<{ edit: [ExpenseRow], deleted: [], reordered: [] }>()
+
+/*
+ * The list runs newest day first, and each day reads in journey order, so a
+ * neighbour is only reorderable when it falls on the same date. Comparing
+ * against the adjacent row keeps this in step with whatever the server sent.
+ */
+function canMove(index: number, direction: 'up' | 'down') {
+  const neighbour = props.expenses[direction === 'up' ? index - 1 : index + 1]
+  return !!neighbour && neighbour.spentAt === props.expenses[index]!.spentAt
+}
+
+const moving = ref<string | null>(null)
+
+async function move(expense: ExpenseRow, direction: 'up' | 'down') {
+  moving.value = expense.id
+  try {
+    await $fetch(`/api/expenses/${expense.id}/move`, {
+      method: 'POST',
+      body: { direction }
+    })
+    emit('reordered')
+  } finally {
+    moving.value = null
+  }
+}
 
 const deleting = ref<ExpenseRow | null>(null)
 const busy = ref(false)
@@ -52,10 +77,35 @@ function formatDate(value: string) {
       class="divide-y divide-default"
     >
       <li
-        v-for="expense in expenses"
+        v-for="(expense, index) in expenses"
         :key="expense.id"
         class="py-3 flex items-center gap-2 sm:gap-3"
       >
+        <!-- Only shown where a same-day neighbour exists to swap with. -->
+        <div
+          v-if="!readonly"
+          class="flex flex-col shrink-0 -my-1"
+        >
+          <UButton
+            icon="i-lucide-chevron-up"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            :disabled="!canMove(index, 'up') || moving === expense.id"
+            :aria-label="`Move ${CATEGORY_LABELS[expense.category]} earlier in the day`"
+            @click="move(expense, 'up')"
+          />
+          <UButton
+            icon="i-lucide-chevron-down"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            :disabled="!canMove(index, 'down') || moving === expense.id"
+            :aria-label="`Move ${CATEGORY_LABELS[expense.category]} later in the day`"
+            @click="move(expense, 'down')"
+          />
+        </div>
+
         <UIcon
           :name="CATEGORY_ICONS[expense.category]"
           class="size-4 text-muted shrink-0"

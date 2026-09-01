@@ -11,7 +11,9 @@ export interface ReportExpense {
   rateSource: 'api' | 'manual'
   note: string | null
   receiptCount: number
-  /** Only the date of an expense is recorded, so this breaks same-day ties. */
+  /** Manual position within its day, set by reordering. */
+  sortIndex: number
+  /** Fallback tie-break when positions are equal: only a date is recorded. */
   createdAt: string
 }
 
@@ -44,12 +46,18 @@ export function buildReport(input: {
 
   /*
    * Chronological, and fully determined by the data rather than by the order
-   * rows happened to arrive in. Expenses carry a date but no time, so the
-   * moment each one was logged is the tie-break — people record a trip's legs
-   * in the order they travel them, so the outbound leg precedes the return.
+   * rows happened to arrive in.
+   *
+   * Expenses carry a date but no time, so within a day the manual position
+   * decides. That beats the log time because a leg added later — splitting one
+   * journey into two — is logged last yet belongs mid-sequence. Log time then
+   * id keep the result stable when positions tie.
    */
   const byWhenItHappened = (a: ReportExpense, b: ReportExpense) =>
-    a.spentAt.localeCompare(b.spentAt) || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)
+    a.spentAt.localeCompare(b.spentAt)
+    || a.sortIndex - b.sortIndex
+    || a.createdAt.localeCompare(b.createdAt)
+    || a.id.localeCompare(b.id)
 
   const itemsFor = (category: ExpenseCategory): ReportExpense[] =>
     input.expenses

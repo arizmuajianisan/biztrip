@@ -1,5 +1,8 @@
+import { and, eq, max } from 'drizzle-orm'
 import { z } from 'zod'
 import { EXPENSE_CATEGORIES } from '../../shared/domain/categories'
+import type { useDb } from './db'
+import { schema } from './db'
 import { fetchRate } from './fx'
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
@@ -23,6 +26,22 @@ export const expenseUpdateSchema = z.object({
   note: z.string().trim().max(500).nullable().optional(),
   fxRate: z.number().positive().optional()
 })
+
+/**
+ * The next free position on a given day. New expenses land at the end of their
+ * day; the caller nudges them into place afterwards if the order matters.
+ */
+export async function nextSortIndex(
+  db: ReturnType<typeof useDb>,
+  tripId: string,
+  spentAt: string
+): Promise<number> {
+  const [row] = await db
+    .select({ highest: max(schema.expenses.sortIndex) })
+    .from(schema.expenses)
+    .where(and(eq(schema.expenses.tripId, tripId), eq(schema.expenses.spentAt, spentAt)))
+  return (row?.highest ?? 0) + 1
+}
 
 /**
  * Resolves the rate to freeze onto an expense. Prefers the published rate for the

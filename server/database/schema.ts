@@ -1,4 +1,4 @@
-import { boolean, date, index, numeric, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, date, index, integer, numeric, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const roleEnum = pgEnum('user_role', ['superadmin', 'admin', 'user'])
 export const categoryEnum = pgEnum('expense_category', [
@@ -68,6 +68,10 @@ export const expenses = pgTable('expenses', {
   amountHome: money('amount_home').notNull(),
   rateSource: rateSourceEnum('rate_source').notNull().default('api'),
   spentAt: date('spent_at').notNull(),
+  // Manual position within its day. Expenses record a date but no time, and a
+  // leg added later (e.g. splitting a journey) must be placeable mid-sequence
+  // rather than landing at the end because it was logged last.
+  sortIndex: integer('sort_index').notNull().default(0),
   note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 }, t => [index('expenses_trip_id_idx').on(t.tripId)])

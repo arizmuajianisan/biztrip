@@ -1,6 +1,6 @@
 import { toHome } from '../../../shared/domain/money'
 import { schema, useDb } from '../../utils/db'
-import { expenseCreateSchema, resolveRate } from '../../utils/expense'
+import { expenseCreateSchema, nextSortIndex, resolveRate } from '../../utils/expense'
 import { assertTripOpen, requireTrip } from '../../utils/guard'
 import { validate } from '../../utils/validate'
 
@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     amountHome: toHome(input.amount, rate),
     rateSource: source,
     spentAt: input.spentAt,
+    sortIndex: await nextSortIndex(db, trip.id, input.spentAt),
     note: input.note || null
   }).returning()
 
