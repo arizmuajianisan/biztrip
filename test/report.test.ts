@@ -14,6 +14,7 @@ const expense = (over: Partial<ReportExpense & { category: ExpenseCategory }> = 
   rateSource: 'api' as const,
   note: null,
   receiptCount: 2,
+  createdAt: '2026-08-20T00:00:00Z',
   category: 'hotel' as ExpenseCategory,
   ...over
 })
@@ -46,6 +47,40 @@ describe('buildReport', () => {
     expect(hotel.expenses.map(e => e.id)).toEqual(['e1', 'e2'])
     expect(hotel.actual).toBe(24400)
     expect(r.summary.returnToCompany).toBe(175600)
+  })
+
+  /*
+   * Regression: the report query had no ORDER BY, so same-day expenses came
+   * back in whatever order Postgres chose — which shifts when a row is
+   * updated. A return train journey could print above its outbound leg.
+   * Only the date is recorded, so log time is the tie-break.
+   */
+  it('breaks same-date ties by the order the expenses were logged', () => {
+    const r = buildReport({
+      budgets: [],
+      expenses: [
+        expense({ id: 'return', category: 'train', spentAt: '2026-08-28', createdAt: '2026-09-01T04:29:55Z' }),
+        expense({ id: 'outbound', category: 'train', spentAt: '2026-08-28', createdAt: '2026-09-01T04:29:10Z' }),
+        expense({ id: 'middle', category: 'train', spentAt: '2026-08-28', createdAt: '2026-09-01T04:29:36Z' })
+      ],
+      advanceHome: 0
+    })
+    const train = r.reimbursable.find(c => c.category === 'train')!
+    expect(train.expenses.map(e => e.id)).toEqual(['outbound', 'middle', 'return'])
+  })
+
+  it('does not depend on the order rows arrive in', () => {
+    const rows = [
+      expense({ id: 'a', category: 'train', spentAt: '2026-08-26', createdAt: '2026-09-01T04:26:51Z' }),
+      expense({ id: 'b', category: 'train', spentAt: '2026-08-26', createdAt: '2026-09-01T04:27:15Z' }),
+      expense({ id: 'c', category: 'train', spentAt: '2026-08-25', createdAt: '2026-09-01T04:25:14Z' })
+    ]
+    const forward = buildReport({ budgets: [], expenses: rows, advanceHome: 0 })
+    const reversed = buildReport({ budgets: [], expenses: [...rows].reverse(), advanceHome: 0 })
+    const ids = (r: typeof forward) =>
+      r.reimbursable.find(c => c.category === 'train')!.expenses.map(e => e.id)
+    expect(ids(forward)).toEqual(['c', 'a', 'b'])
+    expect(ids(reversed)).toEqual(ids(forward))
   })
 
   it('sorts expenses within a category by date', () => {

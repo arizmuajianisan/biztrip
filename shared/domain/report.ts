@@ -11,6 +11,8 @@ export interface ReportExpense {
   rateSource: 'api' | 'manual'
   note: string | null
   receiptCount: number
+  /** Only the date of an expense is recorded, so this breaks same-day ties. */
+  createdAt: string
 }
 
 export interface ReportCategory extends CategorySummary {
@@ -40,11 +42,20 @@ export function buildReport(input: {
     additionalAdvanceHome: input.additionalAdvanceHome
   })
 
+  /*
+   * Chronological, and fully determined by the data rather than by the order
+   * rows happened to arrive in. Expenses carry a date but no time, so the
+   * moment each one was logged is the tie-break — people record a trip's legs
+   * in the order they travel them, so the outbound leg precedes the return.
+   */
+  const byWhenItHappened = (a: ReportExpense, b: ReportExpense) =>
+    a.spentAt.localeCompare(b.spentAt) || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)
+
   const itemsFor = (category: ExpenseCategory): ReportExpense[] =>
     input.expenses
       .filter(e => e.category === category)
-      .sort((a, b) => a.spentAt < b.spentAt ? -1 : a.spentAt > b.spentAt ? 1 : 0)
       .map(({ category: _category, ...expense }) => expense)
+      .sort(byWhenItHappened)
 
   const rowFor = (category: ExpenseCategory): ReportCategory => ({
     ...summary.perCategory.find(r => r.category === category)!,

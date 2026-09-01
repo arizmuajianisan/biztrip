@@ -12,7 +12,11 @@ export default defineEventHandler(async (event) => {
 
   const [budgets, expenseRows, receiptCounts, receiptRows, owner] = await Promise.all([
     db.select().from(schema.tripBudgets).where(eq(schema.tripBudgets.tripId, tripId)),
-    db.select().from(schema.expenses).where(eq(schema.expenses.tripId, tripId)),
+    // Without an explicit order Postgres is free to return these however it
+    // likes, and that order changes as rows get updated.
+    db.select().from(schema.expenses)
+      .where(eq(schema.expenses.tripId, tripId))
+      .orderBy(asc(schema.expenses.spentAt), asc(schema.expenses.createdAt)),
     db.select({ expenseId: schema.receipts.expenseId, total: count() })
       .from(schema.receipts)
       .innerJoin(schema.expenses, eq(schema.expenses.id, schema.receipts.expenseId))
@@ -46,7 +50,8 @@ export default defineEventHandler(async (event) => {
       amountHome: e.amountHome,
       rateSource: e.rateSource,
       note: e.note,
-      receiptCount: counts.get(e.id) ?? 0
+      receiptCount: counts.get(e.id) ?? 0,
+      createdAt: e.createdAt.toISOString()
     })),
     advanceHome: trip.temporaryPaymentAmountHome,
     additionalAdvanceHome: trip.additionalPaymentAmountHome
