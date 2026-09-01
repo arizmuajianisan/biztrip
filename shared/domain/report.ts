@@ -31,11 +31,13 @@ export function buildReport(input: {
   budgets: BudgetInput[]
   expenses: (ReportExpense & { category: ExpenseCategory })[]
   advanceHome: number
+  additionalAdvanceHome?: number
 }): Report {
   const summary = computeSummary({
     budgets: input.budgets,
     expenses: input.expenses.map(e => ({ category: e.category, amountHome: e.amountHome })),
-    advanceHome: input.advanceHome
+    advanceHome: input.advanceHome,
+    additionalAdvanceHome: input.additionalAdvanceHome
   })
 
   const itemsFor = (category: ExpenseCategory): ReportExpense[] =>

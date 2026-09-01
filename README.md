@@ -20,8 +20,17 @@ Everything authoritative is in **JPY** (the company is Japanese).
 - **Per Diem** is the eighth category. It is tracked, but it is your personal
   money and is **never** part of what you return.
 - **Temporary Payment** is the cash advance you were handed, in any currency.
-- `return_to_company = advance − reimbursable actuals`. Negative means the
-  company owes you.
+  An optional **Additional payment** records emergency cash given on top of it.
+  Neither is a budget category — they are cash you hold, returned if unused.
+- The advance funds both your expenses *and* your Per Diem, so:
+
+  ```
+  return_to_company = (advance + additional) − reimbursable actuals − Per Diem allowance
+  ```
+
+  Negative means the company owes you. The Per Diem comes out because it is
+  yours to keep whether or not you spend it — deducting only what you spent
+  would claw back the unspent remainder the report says you keep.
 - FX rates are **frozen onto each expense** at save time using the spend date, so
   historical totals never drift. If no rate is published for a currency you can
   enter one manually; it gets flagged as such.

@@ -1,11 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { EXPENSE_CATEGORIES } from '../../../../shared/domain/categories'
-import { toHome } from '../../../../shared/domain/money'
 import { schema, useDb } from '../../../utils/db'
-import { fetchRate } from '../../../utils/fx'
 import { can } from '../../../../shared/domain/rbac'
 import { requireTrip, requireUser } from '../../../utils/guard'
-import { normalizeCurrencies, tripUpdateSchema } from '../../../utils/trip'
+import { freezePayment, normalizeCurrencies, tripUpdateSchema } from '../../../utils/trip'
 import { validate } from '../../../utils/validate'
 
 export default defineEventHandler(async (event) => {
@@ -31,7 +29,7 @@ export default defineEventHandler(async (event) => {
   if (closed && input.budgets) {
     throw createError({ statusCode: 409, statusMessage: 'Reopen the trip to change its budgets' })
   }
-  if (closed && input.temporaryPayment) {
+  if (closed && (input.temporaryPayment || input.additionalPayment)) {
     throw createError({ statusCode: 409, statusMessage: 'Reopen the trip to change the cash advance' })
   }
 
@@ -71,25 +69,33 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'End date must not be before the start date' })
   }
 
-  // Re-freeze the advance rate only when the advance itself changed.
-  const advance = input.temporaryPayment
-  if (advance) {
-    const changed = advance.amount !== trip.temporaryPaymentAmount
-      || advance.currency !== trip.temporaryPaymentCurrency
-    let rate = advance.fxRate ?? (changed ? undefined : trip.temporaryPaymentFxRateToHome)
-    if (advance.currency === 'JPY') {
-      rate = 1
-    } else if (rate === undefined) {
-      try {
-        rate = (await fetchRate(advance.currency, 'JPY', start)).rate
-      } catch {
-        throw createError({ statusCode: 422, statusMessage: 'RATE_UNAVAILABLE' })
-      }
-    }
-    patch.temporaryPaymentAmount = advance.amount
-    patch.temporaryPaymentCurrency = advance.currency
-    patch.temporaryPaymentFxRateToHome = rate
-    patch.temporaryPaymentAmountHome = toHome(advance.amount, rate)
+  // Re-freeze a payment's rate only when the payment itself changed.
+  if (input.temporaryPayment) {
+    const p = input.temporaryPayment
+    const unchanged = p.amount === trip.temporaryPaymentAmount
+      && p.currency === trip.temporaryPaymentCurrency
+    const frozen = await freezePayment(
+      { ...p, fxRate: p.fxRate ?? (unchanged ? trip.temporaryPaymentFxRateToHome : undefined) },
+      start
+    )
+    patch.temporaryPaymentAmount = frozen.amount
+    patch.temporaryPaymentCurrency = frozen.currency
+    patch.temporaryPaymentFxRateToHome = frozen.rate
+    patch.temporaryPaymentAmountHome = frozen.amountHome
+  }
+
+  if (input.additionalPayment) {
+    const p = input.additionalPayment
+    const unchanged = p.amount === trip.additionalPaymentAmount
+      && p.currency === trip.additionalPaymentCurrency
+    const frozen = await freezePayment(
+      { ...p, fxRate: p.fxRate ?? (unchanged ? trip.additionalPaymentFxRateToHome : undefined) },
+      start
+    )
+    patch.additionalPaymentAmount = frozen.amount
+    patch.additionalPaymentCurrency = frozen.currency
+    patch.additionalPaymentFxRateToHome = frozen.rate
+    patch.additionalPaymentAmountHome = frozen.amountHome
   }
 
   if (Object.keys(patch).length) {

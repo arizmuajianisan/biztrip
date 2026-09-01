@@ -20,8 +20,14 @@ export interface TripSummary {
   perDiemAllowance: number
   perDiemActual: number
   perDiemRemaining: number
+  /** The main cash advance. */
+  advanceBase: number
+  /** Emergency top-up handed over on top of the main advance. */
+  advanceAdditional: number
+  /** Total cash the employee is holding: base + additional. */
   advanceHome: number
-  advanceRemaining: number
+  /** The per diem the employee keeps — the full allowance, spent or not. */
+  perDiemKept: number
   returnToCompany: number
   companyOwesEmployee: number
   isOverBudget: boolean
@@ -41,7 +47,10 @@ const yen = (value: number) => roundMoney(value, HOME_CURRENCY)
 export function computeSummary(input: {
   budgets: BudgetInput[]
   expenses: ExpenseInput[]
+  /** The main cash advance, in JPY. */
   advanceHome: number
+  /** Optional emergency top-up handed over on top of it, in JPY. */
+  additionalAdvanceHome?: number
 }): TripSummary {
   const allowanceOf = (category: ExpenseCategory) =>
     yen(input.budgets.filter(b => b.category === category).reduce((sum, b) => sum + b.amount, 0))
@@ -62,8 +71,20 @@ export function computeSummary(input: {
   const budgetRemaining = yen(reimbursableAllowance - reimbursableActual)
 
   const perDiem = perCategory.find(r => r.category === PER_DIEM)!
-  const advanceHome = yen(input.advanceHome)
-  const returnToCompany = yen(advanceHome - reimbursableActual)
+
+  const advanceBase = yen(input.advanceHome)
+  const advanceAdditional = yen(input.additionalAdvanceHome ?? 0)
+  const advanceHome = yen(advanceBase + advanceAdditional)
+
+  /*
+   * The advance is one lump of cash that funds both the reimbursable spending
+   * and the per diem. The per diem is a fixed entitlement the employee keeps
+   * whether or not they spend it, so it must come out of the cash before the
+   * remainder goes back — otherwise the unspent per diem gets clawed back and
+   * the report contradicts its own "kept by the employee" line.
+   */
+  const perDiemKept = perDiem.allowance
+  const returnToCompany = yen(advanceHome - reimbursableActual - perDiemKept)
 
   return {
     perCategory,
@@ -73,8 +94,10 @@ export function computeSummary(input: {
     perDiemAllowance: perDiem.allowance,
     perDiemActual: perDiem.actual,
     perDiemRemaining: perDiem.remaining,
+    advanceBase,
+    advanceAdditional,
     advanceHome,
-    advanceRemaining: returnToCompany,
+    perDiemKept,
     returnToCompany,
     companyOwesEmployee: returnToCompany < 0 ? -returnToCompany : 0,
     isOverBudget: budgetRemaining < 0,

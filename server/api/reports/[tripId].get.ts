@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
       note: e.note,
       receiptCount: counts.get(e.id) ?? 0
     })),
-    advanceHome: trip.temporaryPaymentAmountHome
+    advanceHome: trip.temporaryPaymentAmountHome,
+    additionalAdvanceHome: trip.additionalPaymentAmountHome
   })
 
   // The settlement figure uses today's rate, not a frozen one — it is what the

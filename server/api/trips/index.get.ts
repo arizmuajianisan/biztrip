@@ -35,7 +35,8 @@ export default defineEventHandler(async (event) => {
     const summary = computeSummary({
       budgets: budgets.filter(b => b.tripId === trip.id),
       expenses: expenses.filter(e => e.tripId === trip.id),
-      advanceHome: trip.temporaryPaymentAmountHome
+      advanceHome: trip.temporaryPaymentAmountHome,
+      additionalAdvanceHome: trip.additionalPaymentAmountHome
     })
     return {
       ...trip,

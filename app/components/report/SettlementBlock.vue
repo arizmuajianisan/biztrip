@@ -34,11 +34,12 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
       Settlement
     </h3>
 
+    <!-- Every line of the derivation is shown, so finance can check the arithmetic. -->
     <dl class="text-sm space-y-1.5">
       <div class="flex justify-between gap-4">
         <dt>Temporary Payment (cash advance)</dt>
         <dd class="figure text-right">
-          {{ formatMoney(summary.advanceHome, 'JPY') }}
+          {{ formatMoney(summary.advanceBase, 'JPY') }}
           <span
             v-if="advanceCurrency !== 'JPY'"
             class="text-muted block text-xs"
@@ -48,10 +49,43 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
         </dd>
       </div>
 
+      <div
+        v-if="summary.advanceAdditional"
+        class="flex justify-between gap-4"
+      >
+        <dt>
+          Additional payment
+          <span class="text-muted text-xs block">Emergency cash, on top of the advance</span>
+        </dt>
+        <dd class="figure">
+          + {{ formatMoney(summary.advanceAdditional, 'JPY') }}
+        </dd>
+      </div>
+
+      <div
+        v-if="summary.advanceAdditional"
+        class="flex justify-between gap-4 border-t border-default/60 pt-1.5"
+      >
+        <dt>Total cash held</dt>
+        <dd class="figure">
+          {{ formatMoney(summary.advanceHome, 'JPY') }}
+        </dd>
+      </div>
+
       <div class="flex justify-between gap-4">
         <dt>Total reimbursable expenses</dt>
         <dd class="figure">
           − {{ formatMoney(summary.reimbursableActual, 'JPY') }}
+        </dd>
+      </div>
+
+      <div class="flex justify-between gap-4">
+        <dt>
+          Per Diem you keep
+          <span class="text-muted text-xs block">Your allowance in full, spent or not</span>
+        </dt>
+        <dd class="figure">
+          − {{ formatMoney(summary.perDiemKept, 'JPY') }}
         </dd>
       </div>
 
@@ -64,10 +98,6 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
           {{ formatMoney(owed ? summary.companyOwesEmployee : summary.returnToCompany, 'JPY') }}
         </dd>
       </div>
-
-      <p class="text-xs text-muted">
-        Per Diem is excluded — it is your personal money and is not returned.
-      </p>
     </dl>
 
     <div class="bg-elevated/60 rounded-md p-3 space-y-2">

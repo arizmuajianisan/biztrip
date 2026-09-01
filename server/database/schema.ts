@@ -33,6 +33,12 @@ export const trips = pgTable('trips', {
   temporaryPaymentCurrency: text('temporary_payment_currency').notNull().default('JPY'),
   temporaryPaymentFxRateToHome: fxRate('temporary_payment_fx_rate_to_home').notNull().default(1),
   temporaryPaymentAmountHome: money('temporary_payment_amount_home').notNull().default(0),
+  // Emergency cash handed over on top of the main advance. Deliberately not a
+  // budget category: it funds nothing in particular and is returned if unused.
+  additionalPaymentAmount: money('additional_payment_amount').notNull().default(0),
+  additionalPaymentCurrency: text('additional_payment_currency').notNull().default('JPY'),
+  additionalPaymentFxRateToHome: fxRate('additional_payment_fx_rate_to_home').notNull().default(1),
+  additionalPaymentAmountHome: money('additional_payment_amount_home').notNull().default(0),
   status: tripStatusEnum('status').notNull().default('active'),
   startDate: date('start_date').notNull(),
   endDate: date('end_date').notNull(),

@@ -1,10 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { EXPENSE_CATEGORIES } from '../../../shared/domain/categories'
-import { toHome } from '../../../shared/domain/money'
 import { schema, useDb } from '../../utils/db'
-import { fetchRate } from '../../utils/fx'
 import { requireRole } from '../../utils/guard'
-import { normalizeCurrencies, tripCreateSchema } from '../../utils/trip'
+import { freezePayment, normalizeCurrencies, tripCreateSchema } from '../../utils/trip'
 import { can } from '../../../shared/domain/rbac'
 import { validate } from '../../utils/validate'
 
@@ -18,17 +16,10 @@ export default defineEventHandler(async (event) => {
   }
   const ownerId = input.userId ?? actor.id
 
-  const advance = input.temporaryPayment
-  let advanceRate = advance.fxRate
-  if (advance.currency === 'JPY') {
-    advanceRate = 1
-  } else if (advanceRate === undefined) {
-    try {
-      advanceRate = (await fetchRate(advance.currency, 'JPY', input.startDate)).rate
-    } catch {
-      throw createError({ statusCode: 422, statusMessage: 'RATE_UNAVAILABLE' })
-    }
-  }
+  const advance = await freezePayment(input.temporaryPayment, input.startDate)
+  const additional = input.additionalPayment
+    ? await freezePayment(input.additionalPayment, input.startDate)
+    : null
 
   const db = useDb(event)
   const [trip] = await db.insert(schema.trips).values({
@@ -39,8 +30,12 @@ export default defineEventHandler(async (event) => {
     settlementCurrency: input.settlementCurrency,
     temporaryPaymentAmount: advance.amount,
     temporaryPaymentCurrency: advance.currency,
-    temporaryPaymentFxRateToHome: advanceRate,
-    temporaryPaymentAmountHome: toHome(advance.amount, advanceRate),
+    temporaryPaymentFxRateToHome: advance.rate,
+    temporaryPaymentAmountHome: advance.amountHome,
+    additionalPaymentAmount: additional?.amount ?? 0,
+    additionalPaymentCurrency: additional?.currency ?? 'JPY',
+    additionalPaymentFxRateToHome: additional?.rate ?? 1,
+    additionalPaymentAmountHome: additional?.amountHome ?? 0,
     startDate: input.startDate,
     endDate: input.endDate
   }).returning()

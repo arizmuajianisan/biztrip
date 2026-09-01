@@ -61,7 +61,7 @@ describe('buildReport', () => {
     expect(hotel.expenses.map(e => e.id)).toEqual(['early', 'late'])
   })
 
-  it('never lets per diem leak into the return calculation', () => {
+  it('never lets per diem spending drive the return calculation', () => {
     const r = buildReport({
       budgets: [{ category: 'per_diem', amount: 60000 }, { category: 'hotel', amount: 90000 }],
       expenses: [
@@ -70,7 +70,21 @@ describe('buildReport', () => {
       ],
       advanceHome: 200000
     })
-    expect(r.summary.returnToCompany).toBe(150000)
+    // 200000 cash − 50000 reimbursable − 60000 per diem entitlement
+    expect(r.summary.returnToCompany).toBe(90000)
     expect(r.perDiem.actual).toBe(60000)
+  })
+
+  it('carries the additional emergency payment through to the report', () => {
+    const r = buildReport({
+      budgets: [{ category: 'per_diem', amount: 30000 }, { category: 'hotel', amount: 50000 }],
+      expenses: [expense({ id: 'h', category: 'hotel', amountHome: 42285 })],
+      advanceHome: 90000,
+      additionalAdvanceHome: 5000
+    })
+    expect(r.summary.advanceBase).toBe(90000)
+    expect(r.summary.advanceAdditional).toBe(5000)
+    expect(r.summary.advanceHome).toBe(95000)
+    expect(r.summary.returnToCompany).toBe(95000 - 42285 - 30000)
   })
 })

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatMoney } from '#shared/domain/money'
+
 interface TripOwner { id: string, displayName: string, email: string }
 
 const props = defineProps<{
@@ -7,6 +9,11 @@ const props = defineProps<{
   owner: TripOwner | null
   /** Only a superadmin may reassign; the picker is hidden otherwise. */
   canReassign: boolean
+  advanceAmount: number
+  advanceCurrency: string
+  additionalAmount: number
+  /** Closing a trip freezes the cash figures, so they become read-only. */
+  locked: boolean
 }>()
 
 const emit = defineEmits<{ saved: [] }>()
@@ -15,6 +22,8 @@ const open = defineModel<boolean>('open', { required: true })
 
 const name = ref(props.name)
 const ownerId = ref<string | undefined>(props.owner?.id)
+const advance = ref(props.advanceAmount)
+const additional = ref(props.additionalAmount)
 const error = ref<string | null>(null)
 const saving = ref(false)
 
@@ -33,6 +42,8 @@ watch(open, (isOpen) => {
   if (!isOpen) return
   name.value = props.name
   ownerId.value = props.owner?.id
+  advance.value = props.advanceAmount
+  additional.value = props.additionalAmount
   error.value = null
   if (props.canReassign && !users.value.length) loadUsers()
 }, { immediate: true })
@@ -52,7 +63,13 @@ async function save() {
       method: 'PATCH',
       body: {
         name: name.value.trim(),
-        userId: reassigning.value ? ownerId.value : undefined
+        userId: reassigning.value ? ownerId.value : undefined,
+        temporaryPayment: props.locked
+          ? undefined
+          : { amount: advance.value, currency: props.advanceCurrency },
+        additionalPayment: props.locked
+          ? undefined
+          : { amount: additional.value, currency: props.advanceCurrency }
       }
     })
     open.value = false
@@ -104,6 +121,47 @@ async function save() {
             class="w-full"
           />
         </UFormField>
+
+        <USeparator />
+
+        <div class="grid grid-cols-2 gap-3">
+          <UFormField
+            label="Temporary Payment"
+            :help="`Cash advance, in ${advanceCurrency}`"
+          >
+            <UInputNumber
+              v-model="advance"
+              :min="0"
+              :disabled="locked"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Additional payment"
+            help="Emergency cash on top"
+          >
+            <UInputNumber
+              v-model="additional"
+              :min="0"
+              :disabled="locked"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <p
+          v-if="locked"
+          class="text-xs text-muted"
+        >
+          Cash figures are frozen because the trip is closed. Reopen it to change them.
+        </p>
+        <p
+          v-else
+          class="text-sm text-muted"
+        >
+          Total cash held: <span class="figure">{{ formatMoney(advance + additional, advanceCurrency) }}</span>
+        </p>
 
         <UAlert
           v-if="reassigning"

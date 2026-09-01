@@ -46,7 +46,7 @@ describe('computeSummary', () => {
     expect(s.perDiemRemaining).toBe(10000)
   })
 
-  it('per diem never affects return to company', () => {
+  it('per diem spending never affects return to company', () => {
     const s = computeSummary({
       budgets,
       expenses: [
@@ -55,8 +55,8 @@ describe('computeSummary', () => {
       ],
       advanceHome: 200000
     })
-    expect(s.returnToCompany).toBe(120000)
-    expect(s.advanceRemaining).toBe(120000)
+    // 200000 advance − 80000 reimbursable − 60000 per diem entitlement
+    expect(s.returnToCompany).toBe(60000)
     expect(s.companyOwesEmployee).toBe(0)
   })
 
@@ -66,8 +66,9 @@ describe('computeSummary', () => {
       expenses: [{ category: 'air_ticket', amountHome: 250000 }],
       advanceHome: 200000
     })
-    expect(s.returnToCompany).toBe(-50000)
-    expect(s.companyOwesEmployee).toBe(50000)
+    // 200000 − 250000 − 60000 per diem entitlement
+    expect(s.returnToCompany).toBe(-110000)
+    expect(s.companyOwesEmployee).toBe(110000)
   })
 
   it('flags over budget with the overage amount', () => {
@@ -109,6 +110,68 @@ describe('computeSummary', () => {
       advanceHome: 0
     })
     expect(s.perDiemRemaining).toBe(-10000)
+  })
+
+  /*
+   * Regression: the "Zero Ichi Matsuri" report told the employee to return
+   * ¥46,145 while simultaneously stating they keep ¥13,598 of unspent Per
+   * Diem. Both could not be true — the cash advance already contained the Per
+   * Diem, so returning `advance − reimbursables` clawed the Per Diem back.
+   */
+  describe('per diem is funded out of the advance', () => {
+    const realTrip = {
+      budgets: [
+        { category: 'hotel' as const, amount: 50000 },
+        { category: 'train' as const, amount: 10000 },
+        { category: 'per_diem' as const, amount: 30000 }
+      ],
+      expenses: [
+        { category: 'hotel' as const, amountHome: 42285 },
+        { category: 'train' as const, amountHome: 6570 },
+        { category: 'per_diem' as const, amountHome: 16402 }
+      ],
+      advanceHome: 90000,
+      additionalAdvanceHome: 5000
+    }
+
+    it('deducts the per diem entitlement from the cash held', () => {
+      const s = computeSummary(realTrip)
+      expect(s.advanceHome).toBe(95000)
+      expect(s.reimbursableActual).toBe(48855)
+      expect(s.perDiemKept).toBe(30000)
+      expect(s.returnToCompany).toBe(16145)
+    })
+
+    it('keeps the additional emergency payment out of the budget', () => {
+      const s = computeSummary(realTrip)
+      expect(s.advanceBase).toBe(90000)
+      expect(s.advanceAdditional).toBe(5000)
+      expect(s.reimbursableAllowance).toBe(60000)
+    })
+
+    /*
+     * The invariant the old formula broke: whatever the employee does not
+     * spend on reimbursables and does not return must equal the per diem
+     * they were told they keep. Anything else is money appearing or vanishing.
+     */
+    it('reconciles — cash − reimbursables − return equals the per diem kept', () => {
+      const s = computeSummary(realTrip)
+      expect(s.advanceHome - s.reimbursableActual - s.returnToCompany).toBe(s.perDiemKept)
+    })
+
+    it('keeps the whole per diem entitlement even when none of it was spent', () => {
+      const s = computeSummary({ ...realTrip, expenses: [{ category: 'hotel', amountHome: 42285 }] })
+      expect(s.perDiemActual).toBe(0)
+      expect(s.perDiemKept).toBe(30000)
+      expect(s.returnToCompany).toBe(95000 - 42285 - 30000)
+    })
+
+    it('treats a missing additional payment as zero', () => {
+      const s = computeSummary({ ...realTrip, additionalAdvanceHome: undefined })
+      expect(s.advanceAdditional).toBe(0)
+      expect(s.advanceHome).toBe(90000)
+      expect(s.returnToCompany).toBe(90000 - 48855 - 30000)
+    })
   })
 
   it('rounds to whole yen', () => {

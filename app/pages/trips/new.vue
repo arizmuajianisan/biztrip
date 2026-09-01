@@ -21,6 +21,10 @@ const advanceAmount = ref(0)
 const advanceCurrency = ref('JPY')
 const advanceManualRate = ref<number | undefined>(undefined)
 
+// Emergency cash handed over on top of the advance. Not a budget category:
+// it funds nothing in particular and comes back if unused.
+const additionalAmount = ref(0)
+
 const error = ref<string | null>(null)
 const submitting = ref(false)
 
@@ -97,7 +101,14 @@ async function submit() {
           amount: advanceAmount.value,
           currency: advanceCurrency.value,
           fxRate: advanceManualRate.value
-        }
+        },
+        additionalPayment: additionalAmount.value > 0
+          ? {
+              amount: additionalAmount.value,
+              currency: advanceCurrency.value,
+              fxRate: advanceManualRate.value
+            }
+          : undefined
       }
     })
     await navigateTo(`/trips/${id}`)
@@ -265,6 +276,18 @@ async function submit() {
             v-model="advanceManualRate"
             :min="0"
             :step="0.0001"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Additional payment"
+          class="sm:col-span-2"
+          help="Extra emergency cash, if you were given any on top of the advance"
+        >
+          <UInputNumber
+            v-model="additionalAmount"
+            :min="0"
             class="w-full"
           />
         </UFormField>

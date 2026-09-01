@@ -18,7 +18,8 @@ export default defineEventHandler(async (event) => {
     summary: computeSummary({
       budgets: budgets.map(b => ({ category: b.category, amount: b.amount })),
       expenses: expenses.map(e => ({ category: e.category, amountHome: e.amountHome })),
-      advanceHome: trip.temporaryPaymentAmountHome
+      advanceHome: trip.temporaryPaymentAmountHome,
+      additionalAdvanceHome: trip.additionalPaymentAmountHome
     })
   }
 })

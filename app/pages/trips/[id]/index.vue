@@ -285,6 +285,10 @@ function dateRange(start: string, end: string) {
       :name="trip.name"
       :owner="owner"
       :can-reassign="canReassign"
+      :advance-amount="trip.temporaryPaymentAmount"
+      :advance-currency="trip.temporaryPaymentCurrency"
+      :additional-amount="trip.additionalPaymentAmount"
+      :locked="readonly"
       @saved="refresh"
     />
 

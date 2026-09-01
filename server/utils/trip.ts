@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { EXPENSE_CATEGORIES } from '../../shared/domain/categories'
+import { toHome } from '../../shared/domain/money'
+import { fetchRate } from './fx'
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
 const currency = z.string().regex(/^[A-Z]{3}$/, 'Expected a 3-letter currency code')
@@ -23,6 +25,11 @@ export const tripCreateSchema = z.object({
     currency,
     fxRate: z.number().positive().optional()
   }),
+  additionalPayment: z.object({
+    amount: z.number().min(0).max(1_000_000_000),
+    currency,
+    fxRate: z.number().positive().optional()
+  }).optional(),
   userId: z.string().uuid().optional()
 }).refine(v => v.endDate >= v.startDate, {
   message: 'End date must not be before the start date',
@@ -43,10 +50,42 @@ export const tripUpdateSchema = z.object({
     currency,
     fxRate: z.number().positive().optional()
   }).optional(),
+  additionalPayment: z.object({
+    amount: z.number().min(0).max(1_000_000_000),
+    currency,
+    fxRate: z.number().positive().optional()
+  }).optional(),
   status: z.enum(['active', 'closed']).optional(),
   /** Reassign the trip to another owner. Superadmin only — enforced in the handler. */
   userId: z.string().uuid().optional()
 })
+
+/**
+ * Freezes the JPY rate for a cash payment handed to the employee. Both the main
+ * advance and the emergency top-up go through this, so they are valued the same
+ * way and on the same date.
+ */
+export async function freezePayment(
+  payment: { amount: number, currency: string, fxRate?: number },
+  on: string
+): Promise<{ amount: number, currency: string, rate: number, amountHome: number }> {
+  let rate = payment.fxRate
+  if (payment.currency === 'JPY') {
+    rate = 1
+  } else if (rate === undefined) {
+    try {
+      rate = (await fetchRate(payment.currency, 'JPY', on)).rate
+    } catch {
+      throw createError({ statusCode: 422, statusMessage: 'RATE_UNAVAILABLE' })
+    }
+  }
+  return {
+    amount: payment.amount,
+    currency: payment.currency,
+    rate,
+    amountHome: toHome(payment.amount, rate)
+  }
+}
 
 /** JPY + destination + settlement are always available, in a stable order. */
 export function normalizeCurrencies(input: string[], defaultCurrency: string, settlementCurrency: string): string[] {
