@@ -81,8 +81,8 @@ const owed = computed(() => props.summary.companyOwesEmployee > 0)
 
       <div class="flex justify-between gap-4">
         <dt>
-          Per Diem you keep
-          <span class="text-muted text-xs block">Your allowance in full, spent or not</span>
+          Per Diem allowance
+          <span class="text-muted text-xs block">Retained in full, not reimbursed</span>
         </dt>
         <dd class="figure">
           − {{ formatMoney(summary.perDiemKept, 'JPY') }}

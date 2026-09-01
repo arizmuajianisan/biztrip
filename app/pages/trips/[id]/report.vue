@@ -13,6 +13,22 @@ useSeoMeta({ title: () => data.value ? `${data.value.trip.name} — Report` : 'R
 
 const summary = computed(() => data.value?.report.summary)
 
+/*
+ * Off by default: this report goes to finance, and how the Per Diem was spent
+ * is the employee's own business. The settlement keeps a single line for the
+ * allowance either way, so the arithmetic on the page always adds up.
+ */
+const includePerDiem = ref(false)
+
+const perDiemExpenseIds = computed(() =>
+  new Set(data.value?.report.perDiem.expenses.map(e => e.id) ?? []))
+
+const visibleReceipts = computed(() => {
+  const receipts = data.value?.receipts ?? []
+  if (includePerDiem.value) return receipts
+  return receipts.filter(r => !perDiemExpenseIds.value.has(r.expenseId))
+})
+
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
@@ -36,7 +52,7 @@ function print() {
       v-else-if="data && summary"
       class="space-y-6"
     >
-      <div class="no-print flex items-center justify-between gap-2">
+      <div class="no-print flex items-center justify-between gap-2 flex-wrap">
         <UButton
           :to="`/trips/${tripId}`"
           label="Back to trip"
@@ -45,14 +61,31 @@ function print() {
           variant="link"
           class="-ms-3"
         />
-        <UButton
-          icon="i-lucide-printer"
-          label="Print / Save as PDF"
-          aria-label="Print or save as PDF"
-          :ui="{ label: 'hidden sm:inline' }"
-          @click="print"
-        />
+        <div class="flex items-center gap-3 ms-auto">
+          <USwitch
+            v-model="includePerDiem"
+            label="Include Per Diem"
+            size="sm"
+          />
+          <UButton
+            icon="i-lucide-printer"
+            label="Print / Save as PDF"
+            aria-label="Print or save as PDF"
+            :ui="{ label: 'hidden sm:inline' }"
+            @click="print"
+          />
+        </div>
       </div>
+
+      <UAlert
+        v-if="!includePerDiem"
+        class="no-print"
+        color="neutral"
+        variant="subtle"
+        icon="i-lucide-eye-off"
+        title="Per Diem spending hidden"
+        :description="`This is the company copy. The ${formatMoney(summary.perDiemKept, 'JPY')} allowance still appears in the settlement, because it explains why it is not returned.`"
+      />
 
       <header class="space-y-1">
         <h1 class="text-xl sm:text-2xl font-semibold tracking-tight break-words">
@@ -113,7 +146,10 @@ function print() {
         :settlement="data.settlement"
       />
 
-      <section class="space-y-2">
+      <section
+        v-if="includePerDiem"
+        class="space-y-2"
+      >
         <h3 class="font-medium border-b border-default pb-1">
           Per Diem — personal, not reimbursed
         </h3>
@@ -143,7 +179,7 @@ function print() {
         />
       </section>
 
-      <ReportReceiptsAppendix :receipts="data.receipts" />
+      <ReportReceiptsAppendix :receipts="visibleReceipts" />
     </div>
   </div>
 </template>
