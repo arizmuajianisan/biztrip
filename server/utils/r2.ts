@@ -2,6 +2,8 @@ import type { R2Bucket } from '@cloudflare/workers-types'
 import type { H3Event } from 'h3'
 
 export const ALLOWED_RECEIPT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+/** A browser-generated display copy is only ever one of these. */
+export const ALLOWED_DISPLAY_TYPES = ['image/webp', 'image/jpeg']
 export const MAX_RECEIPT_BYTES = 10 * 1024 * 1024
 export const MAX_RECEIPTS_PER_EXPENSE = 10
 

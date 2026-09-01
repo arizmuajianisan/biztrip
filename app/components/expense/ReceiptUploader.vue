@@ -17,6 +17,7 @@ const previews = ref<Map<File, string>>(new Map())
 const saved = ref<SavedReceipt[]>([])
 const error = ref<string | null>(null)
 const busy = ref(false)
+const compressing = ref(false)
 const input = useTemplateRef<HTMLInputElement>('input')
 
 async function loadSaved() {
@@ -79,11 +80,38 @@ function onDrop(event: DragEvent) {
   addFiles(event.dataTransfer?.files ?? null)
 }
 
-/** Uploads everything staged locally. Called by the parent once the expense exists. */
+/**
+ * Uploads everything staged locally. Called by the parent once the expense
+ * exists. Each original is accompanied by a smaller display copy, paired by
+ * index so a file we could not re-encode never shifts the others out of line.
+ */
 async function upload(expenseId: string) {
   if (!pending.value.length) return
+
+  compressing.value = true
   const body = new FormData()
-  for (const file of pending.value) body.append('receipts', file, file.name)
+  try {
+    for (const [index, file] of pending.value.entries()) {
+      body.append('receipts', file, file.name)
+      // A compression failure must never cost the user their receipt: the
+      // original still uploads and gets served as before.
+      try {
+        const display = await compressImage(file)
+        if (display) {
+          body.append(
+            `display:${index}`,
+            display.blob,
+            displayFilename(file.name, display.contentType)
+          )
+        }
+      } catch {
+        // Fall through with the original only.
+      }
+    }
+  } finally {
+    compressing.value = false
+  }
+
   await $fetch(`/api/expenses/${expenseId}/receipts`, { method: 'POST', body })
   for (const url of previews.value.values()) URL.revokeObjectURL(url)
   previews.value.clear()
@@ -115,6 +143,12 @@ defineExpose({ upload })
       <p class="text-xs text-muted">
         JPG, PNG, WebP or PDF · up to 10 MB each · {{ total }}/{{ MAX_FILES }} attached
       </p>
+      <p
+        v-if="compressing"
+        class="text-xs text-primary mt-1"
+      >
+        Compressing photos…
+      </p>
       <input
         ref="input"
         type="file"
@@ -142,12 +176,20 @@ defineExpose({ upload })
         :key="receipt.id"
         class="relative group aspect-square rounded-md overflow-hidden border border-default bg-elevated"
       >
-        <img
+        <a
           v-if="receipt.contentType.startsWith('image/')"
-          :src="`/api/receipts/${receipt.id}`"
-          :alt="receipt.filename"
-          class="size-full object-cover"
+          :href="`/api/receipts/${receipt.id}?full=1`"
+          target="_blank"
+          rel="noopener"
+          title="Open the full-quality original"
         >
+          <img
+            :src="`/api/receipts/${receipt.id}`"
+            :alt="receipt.filename"
+            class="size-full object-cover"
+            loading="lazy"
+          >
+        </a>
         <div
           v-else
           class="size-full flex items-center justify-center"

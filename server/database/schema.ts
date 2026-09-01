@@ -79,5 +79,10 @@ export const receipts = pgTable('receipts', {
   filename: text('filename').notNull(),
   contentType: text('content_type').notNull(),
   size: numeric('size', { precision: 12, scale: 0, mode: 'number' }).notNull(),
+  // A smaller re-encode used for thumbnails, the report and printing. Nullable:
+  // receipts uploaded before this existed simply serve their original.
+  displayR2Key: text('display_r2_key'),
+  displayContentType: text('display_content_type'),
+  displaySize: numeric('display_size', { precision: 12, scale: 0, mode: 'number' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 }, t => [index('receipts_expense_id_idx').on(t.expenseId)])

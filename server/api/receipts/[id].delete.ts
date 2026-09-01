@@ -14,7 +14,10 @@ export default defineEventHandler(async (event) => {
   const { trip } = await requireExpense(event, receipt.expenseId)
   assertTripOpen(trip)
 
-  await useR2(event).delete(receipt.r2Key)
+  // Both the original and its display copy, or the variant is orphaned in R2.
+  const keys = [receipt.r2Key, receipt.displayR2Key].filter((k): k is string => !!k)
+  await useR2(event).delete(keys)
+
   await db.delete(schema.receipts).where(eq(schema.receipts.id, receiptId))
   return { ok: true }
 })
