@@ -198,7 +198,7 @@ NUXT_SESSION_PASSWORD=replace-with-32-plus-random-characters
 NUXT_SEED_TOKEN=replace-with-random-token
 ```
 
-Then create `.env` (gitignored) with the real Neon URL that is currently in `.env.example` (`postgresql://neondb_owner:npg_uDIYJ2h9CsEK@ep-small-wind-az9vzza0-pooler.c-3.ap-southeast-1.aws.neon.tech/production?sslmode=require&channel_binding=require`) as `NUXT_DB_URL`, plus generated values for the other two:
+Then create `.env` (gitignored) with your real Neon connection string (copy it from the Neon console — never commit it) as `NUXT_DB_URL`, plus generated values for the other two:
 
 ```bash
 node -e "console.log('NUXT_SESSION_PASSWORD=' + crypto.randomUUID().replace(/-/g,'') + crypto.randomUUID().replace(/-/g,''))"
