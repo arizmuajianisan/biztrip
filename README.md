@@ -1,4 +1,4 @@
-# Trip Ledger
+# BizTrip
 
 Track business-trip expenses as they happen — with receipt photos, in whatever
 currency you actually spent — and produce a finance-ready settlement report.
@@ -6,7 +6,7 @@ currency you actually spent — and produce a finance-ready settlement report.
 Built for the problem of reporting from memory: missed expenses, mis-keyed bill
 amounts, and receipt photos never taken.
 
-- **Live:** https://trip-ledger.arizmuajianisan.workers.dev
+- **Live:** https://biztrip.arzlabserver.my.id/
 - **Design spec:** [`docs/superpowers/specs/2026-08-22-trip-ledger-design.md`](docs/superpowers/specs/2026-08-22-trip-ledger-design.md)
 - **Implementation plan:** [`docs/superpowers/plans/2026-08-22-trip-ledger.md`](docs/superpowers/plans/2026-08-22-trip-ledger.md)
 
@@ -85,7 +85,7 @@ pnpm dev
 Seed one account per role (idempotent, safe to re-run):
 
 ```bash
-curl -X POST localhost:3000/api/admin/seed -H "x-seed-token: $NUXT_SEED_TOKEN"
+curl -X POST https://biztrip.arzlabserver.my.id/api/admin/seed -H "x-seed-token: $NUXT_SEED_TOKEN"
 ```
 
 This creates `superadmin@trip-ledger.local`, `admin@trip-ledger.local` and
@@ -118,3 +118,12 @@ where a wrong answer is both likely and invisible. API and authorization
 behaviour is verified against a running server; there is no isolated test
 database, so those checks are not automated. Add them if you point
 `NUXT_DB_URL` at a dedicated Neon branch.
+
+## Contributing
+
+Contributions are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup,
+conventions and the pull request process.
+
+## License
+
+[MIT](LICENSE) © 2026 Ariz Muajianisan
